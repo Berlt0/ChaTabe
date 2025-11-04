@@ -1,41 +1,41 @@
-import React, { useState,useEffect } from 'react';
+// ✅ Imports and setup
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Search, MessageSquareText, Smile } from "lucide-react";
+import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff } from "lucide-react";
 
 axios.defaults.withCredentials = true;
 
 const Home = () => {
   const navigate = useNavigate();
-  const [data,setData] = useState([])
-  const [userId,setUserId] = useState(0)
+  const [data, setData] = useState([]);
+  const [userId, setUserId] = useState(0);
+  const [searchMessage,setSearchMessage] = useState(false)
+
 
   useEffect(() => {
-    axios.get('http://localhost:3000/data') // adjust port if needed
+    axios.get('http://localhost:3000/data')
       .then(res => setData(res.data))
       .catch(err => console.error(err));
   }, []);
 
   const selectedUser = data.find(user => user.user_id === userId);
 
-
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-[#ffffff] to-[#9176e8]">
       
-      {/* Header */}
+    
       <header className="bg-white flex flex-row flex-wrap justify-between items-center px-3 py-2 border-b border-gray-100 gap-2">
-        
-        {/* Logo */}
+
         <img
           src="/logo.png"
           alt="Logo"
           className="w-14 h-10 sm:w-22 sm:h-12 md:w-[8vw] md:h-[7vh] 2xl:w-[9vw] xl:w-[9vw] object-cover rounded-md flex-shrink-0"
         />
 
-        {/* Search + Icons */}
+    
         <div className="flex flex-row items-center justify-center w-[48%] sm:w-[64%] md:w-auto gap-2 md:gap-3">
-          
-          {/* Search Bar */}
+      
           <div className="flex items-center bg-gray-200 rounded-md px-2 py-1 w-[55%] sm:w-[40%] md:w-[38vw] sm:w-[20vw] 2xl:w-[25vw] border border-[#6f2db7]">
             <Search className="text-gray-900 mr-2" size={16} />
             <input
@@ -46,7 +46,6 @@ const Home = () => {
             />
           </div>
 
-          {/* Icon Menu */}
           <div className="flex justify-center items-center gap-2 sm:gap-3 md:gap-4">
             <div className="flex flex-col items-center cursor-pointer">
               <MessageSquareText className="text-[#6f2db7] block sm:hidden" size={14} />
@@ -62,8 +61,7 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Profile */}
-        <div className="w-8 sm:w-9 md:w-10 aspect-square ">
+        <div className="w-8 sm:w-9 md:w-10 aspect-square">
           <img
             src="/images.jpg"
             alt="User Profile Picture"
@@ -72,79 +70,127 @@ const Home = () => {
         </div>
       </header>
 
-  
-      <main className="flex flex-col md:flex-row flex-grow gap-2 px-4 py-2 bg-gradient-to-r from-[#ffffff] to-[#9176e8] ">
-
+      <main className="flex flex-col md:flex-row flex-grow gap-3 px-4 py-2 bg-gradient-to-r from-[#ffffff] to-[#9176e8]">
         
-        <div className="bg-transparent flex-1 min-h-[300px] md:min-h-[89vh] rounded-md shadow-md p-3 overflow-y-auto ">
 
+        <div className="bg-transparent flex-[1] 2xl:flex-[0.8] xl:flex-[0.9] lg:flex-[1.3] md:flex-[2]  min-h-[300px] md:min-h-[89vh] rounded-md shadow-md p-3 overflow-y-auto">
           <ul className="space-y-3">
-
             {data.map(user => (
-
-             <li key={user.user_id} className="flex items-center gap-3 bg-gray-100 p-2 rounded-md shadow-sm cursor-pointer" onClick={() => setUserId(user.user_id)}>
-
+              <li
+                key={user.user_id}
+                className="flex items-center gap-3 bg-gray-200 p-2 rounded-md shadow-sm cursor-pointer"
+                onClick={() => setUserId(user.user_id)}
+              >
                 <img
                   src="/images.jpg"
                   alt={user.username}
                   style={{ borderColor: user.moodColor }}
-                  className="w-10 h-10 rounded-full object-cover border-2"
+                  className="w-10 h-10 lg:w-10 lg:h-10 rounded-full object-cover border-2"
                 />
-
                 <div className="flex-1">
-
-                  <p className="font-semibold text-md text-gray-800">{user.username}</p>
-
+                  <p className="font-semibold text-sm text-gray-800">{user.username}</p>
                   <div className="flex justify-between text-xs text-gray-500 px-1">
-
                     <p>{user.recentMessage}</p>
                     <p>{user.recentMessageTime}</p>
-
                   </div>
                 </div>
-                
               </li>
-            
             ))}
-
           </ul>
-
         </div>
 
-        
-        
-        <div className="bg-gray-700 flex-[3] min-h-[300px] md:min-h-[89vh] rounded-md p-5 shadow-xl">
-          
-          {
-              selectedUser ? (
-                <>
-              <div className='flex flex-row gap-2'>
+
+        <div className="bg-gray-500 flex-[4] lg:flex-[3] min-h-[300px] md:min-h-[89vh] rounded-md shadow-xl flex flex-col p-2 px-3 ">
+          {selectedUser ? (
+            <>
+            
+              <div className="flex flex-row gap-2 p-3">
                 <img
-                  src='/bert.png'
+                  src="/bert.png"
                   alt={selectedUser.username}
                   style={{ borderColor: selectedUser.moodColor }}
                   className="w-14 h-14 rounded-full object-cover border-2"
                 />
-
-                <div className='flex flex-col'>
-                  <h2 h2 className="text-xl font-bold text-white m-09 pl-2">{selectedUser.username}</h2>
-                  <p className='text-[11px] text-white pl-2 m-0 '>{selectedUser.moodStatus}</p>
+                <div className="flex flex-col">
+                  <h2 className="text-xl font-bold text-white pl-2">{selectedUser.username}</h2>
+                  <p className="text-[11px] text-white pl-2">{selectedUser.moodStatus}</p>
                 </div>
-
-
               </div>
 
-              <div className='w-full bg-white p-[.5px] mt-5'></div>
-              </>
-            ) : (
-                <p className="text-white text-sm">Select a user to start chatting</p>
-            )
-          
-          }
+        
+              <div className="w-full bg-white h-[1px] my-2"></div>
 
 
+              <div className="flex-1 overflow-y-auto p-2 mb-3 rounded-md">
+                
+              </div>
 
+        
+              <div className="p-2 w-full flex flex-row gap-3 items-center rounded-md">
+                <input
+                  type="text"
+                  name="input_message"
+                  placeholder="Input message here"
+                  className="p-2 outline-none w-full border border-gray-300 rounded-md placeholder-white text-white"
+                />
+                <ThumbsUp className="text-gray-700 cursor-pointer text-white" size={30} />
+              </div>
+            </>
+          ) : (
+            <p className="text-white text-sm p-3">Select a user to start chatting</p>
+          )}
         </div>
+
+        {
+          selectedUser ? (
+
+            <>
+            
+              <div className="p-2 flex-1 lg:flex-[0.9] flex-shrink-0 flex-grow-0 basis-[10%] min-w-0 bg-gray-500 rounded-lg gap-5 flex flex-col">
+                
+                <div className='w-full flex flex-col items-center pt-5 gap-2'>
+
+                  <img 
+                  src="/bert.png" 
+                  alt={`${selectedUser.username}, Profile picture`}
+                  className='w-25 h-25 lg:w-18 lg:h-18 rounded-full object-cover  '/>
+
+                  <h1 className='text-center text-xl text-white lg:text-lg'>{selectedUser.username}</h1>
+
+                </div>
+
+                <div className=' w-full p-2 flex flex-col'>
+                  
+                  <div className=' flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-100 transition duration-50 ease' 
+                  onClick={() => setSearchMessage(true)}>
+ 
+                        <Search size={18} className="flex-shrink-0 lg:hidden"/>
+                        <Search size={16} className='flex-shrink-0 lg:block'/>
+                        <input type="text" name="search-message" placeholder='Search Message' className='px-2 outline-none block placeholder-black  hover:placeholder-black border-1 w-full lg:text-[0.8em]' />
+                    
+                  </div>
+                  
+                  <div className=' flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-100 transition duration-50 ease'>        
+ 
+                        <MessageCircleOff size={18} className=' flex-shrink-0 lg:hidden'/>
+                        <MessageCircleOff size={16} className=' flex-shrink-0 lg:block'/>
+                        <p className='px-2 w-full lg:text-[0.8em] '>Block Contact</p>
+                    
+                  </div>
+
+
+                </div>
+                
+
+              </div>
+            
+            </>
+
+          ):(
+            <>
+            </>
+          )}
+        
       </main>
     </div>
   );

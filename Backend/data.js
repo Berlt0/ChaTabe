@@ -6,6 +6,7 @@ const datas = [{
     moodStatus:'Happy',
     recentMessage: 'I love you',
     recentMessageTime: '7:34',
+    isActive: true,
     profilePath: '../Frontend/ChaTabe/public/bert.png'
 
 },{
@@ -15,6 +16,7 @@ const datas = [{
     moodStatus:'Sad',
     recentMessage: 'I love you',
     recentMessageTime: '7:10',
+    isActive: true,
     profilePath: '../Frontend/ChaTabe/public/bert.png'
 },{
     user_id: 3,
@@ -23,6 +25,7 @@ const datas = [{
     moodStatus:'Angry',
     recentMessage: 'I love you',
     recentMessageTime: '7:09',
+    isActive: false,
     profilePath: '../Frontend/ChaTabe/public/bert.png'
 },{
     user_id: 4,
@@ -31,6 +34,7 @@ const datas = [{
     moodStatus:'Afraid',
     recentMessage: 'I love you',
     recentMessageTime: '7:00',
+    isActive: true,
     profilePath: '../Frontend/ChaTabe/public/bert.png'
 },{
     user_id: 5,
@@ -39,6 +43,7 @@ const datas = [{
     moodStatus:'Annoyed',
     recentMessage: 'I love you',
     recentMessageTime: '7:00',
+    isActive: false,
     profilePath: '../Frontend/ChaTabe/public/bert.png'
 }
 
