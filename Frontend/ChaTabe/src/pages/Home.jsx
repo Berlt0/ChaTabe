@@ -11,15 +11,60 @@ const Home = () => {
   const [data, setData] = useState([]);
   const [userId, setUserId] = useState(0);
   const [searchMessage,setSearchMessage] = useState(false)
+  
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+
+  const [userData,setUserData] = useState()
+
 
 
   useEffect(() => {
-    axios.get('http://localhost:3000/data')
-      .then(res => setData(res.data))
-      .catch(err => console.error(err));
+    async function fetchUserData() {
+      
+      try {
+        
+        const res = await axios.get('http://localhost:3000/user_data',{
+          withCredentials: true
+        })
+
+        setUserData(res.data)
+        console.log('User data: ',res.data)
+
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+
+      }
+
+    }
+
+  fetchUserData();
+
   }, []);
 
+  
+
   const selectedUser = data.find(user => user.user_id === userId);
+
+  const handleSearch = async() => {
+
+    try {
+      
+      if(!query.trim()) return;
+
+      const response = await axios.get(`http://localhost:3000/search?username=${query}`,
+        {
+          withCredentials: true
+        }
+      )
+
+       setResults(response.data.users);
+
+    } catch (error) {
+      console.log('Somthing went wrong', error)
+    }
+
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-[#ffffff] to-[#9176e8]">
@@ -41,9 +86,34 @@ const Home = () => {
             <input
               type="text"
               name="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               placeholder="Search contact"
               className="bg-transparent outline-none w-full text-gray-700 placeholder-gray-500 text-xs sm:text-sm"
+              onKeyDown={(e) =>{
+                if(e.key === 'Enter'){
+                  handleSearch()
+                }
+              }}
+
             />
+
+            {results.length > 0 && (
+              <div className="absolute bg-white rounded shadow-md mt-1 w-[200px] z-10">
+                {results.map((user) => (
+                  <div key={user._id} className="flex justify-between items-center p-2 border-b">
+                    <p>{user.username}</p>
+                    <button
+                      className="bg-[#6f2db7] text-white px-2 py-1 text-xs rounded"
+                    >
+                      Add
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+
           </div>
 
           <div className="flex justify-center items-center gap-2 sm:gap-3 md:gap-4">
@@ -60,14 +130,21 @@ const Home = () => {
             </div>
           </div>
         </div>
+            
+        {userData && (
 
-        <div className="w-8 sm:w-9 md:w-10 aspect-square">
-          <img
-            src="/images.jpg"
-            alt="User Profile Picture"
-            className="w-full h-full rounded-full border-2 border-[#6f2db7] object-cover"
-          />
-        </div>
+          <div className="w-8 sm:w-9 md:w-10 aspect-square">
+            <img
+              src={userData.user.profilePic}
+              alt="User Profile Picture"
+              className="w-full h-full rounded-full border-2 border-[#6f2db7] object-cover"
+            />
+          </div>
+
+
+        )}
+
+
       </header>
 
       <main className="flex flex-col md:flex-row flex-grow gap-3 px-4 py-2 bg-gradient-to-r from-[#ffffff] to-[#9176e8]">
@@ -81,6 +158,7 @@ const Home = () => {
                 className="flex items-center gap-3 bg-gray-200 p-2 rounded-md shadow-sm cursor-pointer"
                 onClick={() => setUserId(user.user_id)}
               >
+                
                 <img
                   src="/images.jpg"
                   alt={user.username}
@@ -106,7 +184,7 @@ const Home = () => {
             
               <div className="flex flex-row gap-2 p-3">
                 <img
-                  src="/bert.png"
+                  src=""
                   alt={selectedUser.username}
                   style={{ borderColor: selectedUser.moodColor }}
                   className="w-14 h-14 rounded-full object-cover border-2"

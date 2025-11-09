@@ -25,6 +25,7 @@ const Login = () => {
   const [confirmPassword,setConfirmPassword] = useState("");
   const [age,setAge] = useState(0)
   const [gender,setGender] = useState('')
+  
 
   const handleRegister = async (e) =>{
     e.preventDefault();
@@ -93,7 +94,7 @@ const Login = () => {
 
     } catch (error) { 
       console.log('Something went wrong',error);
-      alert('Something went wrong')
+      alert('Invalid credentials')
       
     }
 

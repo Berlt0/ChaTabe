@@ -47,7 +47,7 @@ export const loginUser = async(req,res) => {
       return res.status(401).json({success:false,message: 'Invalid crendentials'})
     }
 
-    const isMatch = bcrypt.compare(password,user.password)
+    const isMatch = await bcrypt.compare(password,user.password)
 
     if(!isMatch){
       return res.status(401).json({success:false,message:"Invalid credentials"})
@@ -63,8 +63,9 @@ export const loginUser = async(req,res) => {
 
     res.cookie('token', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      // secure: process.env.NODE_ENV === 'production',
+      secure: false,
+      sameSite: 'Lax',
     });
 
     

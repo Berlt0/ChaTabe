@@ -11,7 +11,8 @@ const userSchema = new mongoose.Schema({
     },
     email:{
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     age:{
         type: Number,
@@ -21,6 +22,19 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    profilePic:{
+        type: String,
+        required: false
+    
+    },contacts: [
+
+        {
+
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users'  // Reference to other users
+    },
+
+]
 
 })
 
