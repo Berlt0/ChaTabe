@@ -28,6 +28,7 @@ app.use(cors({
 const PORT = process.env.PORT || 3000;
 
 connectDB();
+console.log()
 
 const server = http.createServer(app)
 

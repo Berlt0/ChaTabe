@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff } from "lucide-react";
+import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut } from "lucide-react";
 
 axios.defaults.withCredentials = true;
 
@@ -16,6 +16,7 @@ const Home = () => {
   const [results, setResults] = useState([]);
 
   const [userData,setUserData] = useState()
+
 
 
 
@@ -37,14 +38,15 @@ const Home = () => {
       }
 
     }
+ 
+      fetchUserData();
 
-  fetchUserData();
 
-  }, []);
+  },[]);
 
   
 
-  const selectedUser = data.find(user => user.user_id === userId);
+  const selectedUser = userData?.user?.contacts?.find(user => user._id === userId);
 
   const handleSearch = async() => {
 
@@ -65,6 +67,53 @@ const Home = () => {
     }
 
   }
+
+  const addContact = async (contactId) => {
+
+    try {
+      
+      const response = await axios.post('http://localhost:3000/add-contact',{
+        contactId
+      },{ withCredentials: true})
+
+      alert(response.message)
+
+    } catch (error) {
+      
+      if(error.response) {
+        alert(error.response.data.message)
+        console.log('Something went wrong ', error.response )
+        
+      }else{
+        alert('Something went wrong')
+        console.log('Something went wrong ',error )
+      }
+
+    }}
+    
+    const Logout = async () => {
+
+      try {
+       
+        await axios.post('http://localhost:3000/logout', {}, { withCredentials: true });
+
+        navigate('/');
+
+      } catch (error) {
+        console.error('Logout failed:', error);
+      }
+    };
+
+
+    const moodColorHandler = (moodStatus) => {
+        if (moodStatus === 'Happy') return '#dd7c30';
+        if (moodStatus === 'Sad') return '#1a4097';
+        if (moodStatus === 'Angry') return '#ff3131';
+        if (moodStatus === 'Annoyed') return '#049650';
+        if (moodStatus === 'Afraid') return '#7228c2';
+        return '#ffffffff'; 
+      };    
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-[#ffffff] to-[#9176e8]">
@@ -105,7 +154,7 @@ const Home = () => {
                     <p>{user.username}</p>
                     <button
                       className="bg-[#6f2db7] text-white px-2 py-1 text-xs rounded"
-                    >
+                      onClick={() => addContact(user._id)}>
                       Add
                     </button>
                   </div>
@@ -152,28 +201,41 @@ const Home = () => {
 
         <div className="bg-transparent flex-[1] 2xl:flex-[0.8] xl:flex-[0.9] lg:flex-[1.3] md:flex-[2]  min-h-[300px] md:min-h-[89vh] rounded-md shadow-md p-3 overflow-y-auto">
           <ul className="space-y-3">
-            {data.map(user => (
-              <li
-                key={user.user_id}
-                className="flex items-center gap-3 bg-gray-200 p-2 rounded-md shadow-sm cursor-pointer"
-                onClick={() => setUserId(user.user_id)}
-              >
+
+            {
+              
+              userData?.user?.contacts?.length > 0 ? (
+
+                userData.user.contacts.map(user => (
+                  <li
+                    key={user._id}
+                    className="flex items-center gap-3 bg-gray-200 p-2 rounded-md shadow-sm cursor-pointer"
+                    onClick={() => setUserId(user._id)}
+                  >
+                    
+                    <img
+                      src={user.profilePic}
+                      alt={user.username}
+                      style={{ borderColor: moodColorHandler(user.moodStatus) }}
+                      className="w-10 h-10 lg:w-10 lg:h-10 rounded-full object-cover border-2"
+                    />
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm text-gray-800">{user.username}</p>
+                      <div className="flex justify-between text-xs text-gray-500 px-1">
+                        <p>{user.recentMessage}</p>
+                        <p>{user.recentMessageTime}</p>
+                      </div>
+                    </div>
+                  </li>
+
                 
-                <img
-                  src="/images.jpg"
-                  alt={user.username}
-                  style={{ borderColor: user.moodColor }}
-                  className="w-10 h-10 lg:w-10 lg:h-10 rounded-full object-cover border-2"
-                />
-                <div className="flex-1">
-                  <p className="font-semibold text-sm text-gray-800">{user.username}</p>
-                  <div className="flex justify-between text-xs text-gray-500 px-1">
-                    <p>{user.recentMessage}</p>
-                    <p>{user.recentMessageTime}</p>
-                  </div>
-                </div>
-              </li>
-            ))}
+              )
+              )):(
+                <p className='text-lg text-center'>No contacts available</p>
+              )
+          }
+            
+            
           </ul>
         </div>
 
@@ -184,9 +246,9 @@ const Home = () => {
             
               <div className="flex flex-row gap-2 p-3">
                 <img
-                  src=""
+                  src={selectedUser.profilePic}
                   alt={selectedUser.username}
-                  style={{ borderColor: selectedUser.moodColor }}
+                  style={{ borderColor: moodColorHandler(selectedUser.moodStatus) }}
                   className="w-14 h-14 rounded-full object-cover border-2"
                 />
                 <div className="flex flex-col">
@@ -229,7 +291,7 @@ const Home = () => {
                 <div className='w-full flex flex-col items-center pt-5 gap-2'>
 
                   <img 
-                  src="/bert.png" 
+                  src={selectedUser.profilePic} 
                   alt={`${selectedUser.username}, Profile picture`}
                   className='w-25 h-25 lg:w-18 lg:h-18 rounded-full object-cover  '/>
 
@@ -256,6 +318,13 @@ const Home = () => {
                     
                   </div>
 
+                   <div className=' flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-100 transition duration-50 ease' onClick={Logout}>        
+ 
+                        <LogOut size={18} className=' flex-shrink-0 lg:hidden'/>
+                        <LogOut size={16} className=' flex-shrink-0 lg:block'/>
+                        <p className='px-2 w-full lg:text-[0.8em] '>Logout</p>
+                    
+                  </div>
 
                 </div>
                 

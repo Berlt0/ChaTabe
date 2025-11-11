@@ -11,8 +11,9 @@ router.post('/register', registerUser);
 router.post('/login',loginUser)
 router.post('/logout', logoutUser);
 router.get('/search', verifyToken, searchUser)
-router.get('/add-contact', verifyToken, addContact)
+router.post('/add-contact', verifyToken, addContact)
 router.get('/user_data',verifyToken,getUserData)
+
 
 
 export default router;

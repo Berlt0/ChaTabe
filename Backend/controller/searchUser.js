@@ -25,7 +25,9 @@ export const searchUser = async (req, res) => {
 export const addContact = async (req, res) => {
   try {
     const { contactId } = req.body; 
-    const userId = req.userId; 
+    const userId = req.user.id; 
+
+    // console.log(userId)
 
     if (!contactId) {
       return res.status(400).json({ success: false, message: "Contact ID required" });

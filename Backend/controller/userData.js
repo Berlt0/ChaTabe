@@ -9,16 +9,13 @@ export const getUserData = async (req,res) => {
 
         
 
-        const user = await Users.findById(userId).select("-password")
+        const user = await Users.findById(userId).select("-password").populate("contacts", "username age gender profilePic moodStatus isActive")
 
         if(!user) return res.status(404).json({success:false,message:"User not found"})
 
-        const userMood = await UserMood.findOne({user: userId})
 
         res.json({
-            user,   
-            moodStatus: userMood ? userMood.moodStatus : null,
-            isActive: userMood ? userMood.isActive : false,
+            user,  
         });
 
     } catch (error) {

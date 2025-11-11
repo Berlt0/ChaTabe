@@ -86,7 +86,7 @@ const Login = () => {
       setLoginUsername('')
       setLoginPassword('')
 
-      console.log(response.message)
+      console.log(response.data.message)
       navigate('/home')
 
       
