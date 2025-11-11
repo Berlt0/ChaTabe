@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut } from "lucide-react";
+import MessageInputComponent from '../components/MessageInputComponent';
 
 axios.defaults.withCredentials = true;
 
@@ -266,7 +267,7 @@ const Home = () => {
               </div>
 
         
-              <div className="p-2 w-full flex flex-row gap-3 items-center rounded-md">
+              {/* <div className="p-2 w-full flex flex-row gap-3 items-center rounded-md">
                 <input
                   type="text"
                   name="input_message"
@@ -274,7 +275,9 @@ const Home = () => {
                   className="p-2 outline-none w-full border border-gray-300 rounded-md placeholder-white text-white"
                 />
                 <ThumbsUp className="text-gray-700 cursor-pointer text-white" size={30} />
-              </div>
+              </div> */}
+
+              <MessageInputComponent  senderId={userData?.user?._id} receiverId={selectedUser?._id} senderUsername={userData?.user?.username} receiverUsername={selectedUser?.username} />
             </>
           ) : (
             <p className="text-white text-sm p-3">Select a user to start chatting</p>
