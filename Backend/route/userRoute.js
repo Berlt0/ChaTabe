@@ -4,7 +4,7 @@ import { verifyToken } from '../middleware/authMiddleware.js';
 import { addContact, searchUser } from '../controller/searchUser.js';
 import { getUserData } from '../controller/userData.js';
 
-import { createConversation,getMessages, sendMessage, getUserConversations  } from '../controller/chatController.js';
+import { getMessages, sendMessage, getUserConversations  } from '../controller/chatController.js';
 
 const router = express.Router();
 
@@ -14,13 +14,13 @@ router.post('/login',loginUser)
 router.post('/logout', logoutUser);
 router.get('/search', verifyToken, searchUser)
 router.post('/add-contact', verifyToken, addContact)
-router.get('/user_data',verifyToken,getUserData)
+router.get('/user-data',verifyToken,getUserData)
 
 
-router.post('/create-conversation',verifyToken,createConversation)
+
 router.post('/send-message', verifyToken, sendMessage)
-router.get('/messages', verifyToken, getMessages)
-router.get('/conversation', verifyToken, getUserConversations)
+router.post('/messages', verifyToken, getMessages)
+router.post('/conversation', verifyToken, getUserConversations)
 
 
 

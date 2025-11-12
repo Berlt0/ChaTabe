@@ -2,34 +2,6 @@ import Conversations from "../model/conversationModel.js";
 import Users from "../model/userModel.js"
 import Messages from "../model/messageModel.js"
 
-// This function handles creating conversation and checking conversation if theres an existing convo
-
-export const createConversation = async (req,res) => {
-
-    try {
-        
-        const {senderId, receiverId} = req.body;
-
-        let conversation = await Conversations.findOne({
-            members: {$all: [senderId,receiverId]}
-        })
-
-        if(!conversation){
-            conversation = await Conversations.create({members: [senderId,receiverId]})
-        }
-
-        res.status(201).json(conversation)
-
-    } catch (error) {
-        
-        console.log('Error Creating Conversation', error)
-        res.status(500).json({success:false, message: 'Something went wrong'})
-
-    }
-
-
-}
-
 
 // This function handles sending message
 
@@ -47,6 +19,14 @@ export const sendMessage = async (req,res) => {
             return res.status(404).json({ success: false, message: "User not found" });
         }
 
+         let conversation = await Conversations.findOne({
+            members: {$all: [senderId,receiverId]}
+        })
+
+          if(!conversation){
+            conversation = await Conversations.create({members: [senderId,receiverId], membersUsernames: [sender.username,receiver.username]})
+            console.log("New conversation created:", conversation._id);
+        }
 
         const message = await Messages.create(
             {
@@ -95,6 +75,7 @@ export const getUserConversations = async (req, res) => {
   try {
 
     const userId = req.params.userId;
+    console.log(userId)
 
     const conversations = await Conversations.find({ members: { $in: [userId] }, }).populate("members", "username profilePic");
 

@@ -18,6 +18,10 @@ const Home = () => {
 
   const [userData,setUserData] = useState()
 
+  const [messages, setMessages] = useState([]);
+  const [conversationId, setConversationId] = useState(null);
+
+
 
 
 
@@ -26,7 +30,7 @@ const Home = () => {
       
       try {
         
-        const res = await axios.get('http://localhost:3000/user_data',{
+        const res = await axios.get('http://localhost:3000/user-data',{
           withCredentials: true
         })
 
@@ -105,6 +109,32 @@ const Home = () => {
       }
     };
 
+
+    const handleSelectUser = async (receiverId) => {
+      setUserId(receiverId);
+
+      try {
+      
+        console.log(receiverId)
+
+        const convoRes = await axios.post("http://localhost:3000/conversation", {
+          senderId: userData?.user?._id,
+          receiverId,
+        });
+
+        setConversationId(convoRes.data._id);
+        
+      
+        const messageRes = await axios.post("http://localhost:3000/messages", {
+          conversationId: convoRes.data._id,
+        });
+
+        setMessages(messageRes.data);
+
+      } catch (error) {
+        console.error("Error fetching conversation or messages:", error);
+      }
+    };
 
     const moodColorHandler = (moodStatus) => {
         if (moodStatus === 'Happy') return '#dd7c30';
@@ -211,7 +241,7 @@ const Home = () => {
                   <li
                     key={user._id}
                     className="flex items-center gap-3 bg-gray-200 p-2 rounded-md shadow-sm cursor-pointer"
-                    onClick={() => setUserId(user._id)}
+                    onClick={() => handleSelectUser(user._id)}
                   >
                     
                     <img
@@ -263,7 +293,22 @@ const Home = () => {
 
 
               <div className="flex-1 overflow-y-auto p-2 mb-3 rounded-md">
-                
+                 {messages.length > 0 ? (
+                    messages.map((msg) => (
+                      <div
+                        key={msg._id}
+                        className={`p-2 my-1 rounded-lg w-fit max-w-[70%] ${
+                          msg.sender === userData?.user?._id
+                            ? "bg-blue-600 ml-auto text-white"
+                            : "bg-gray-300 mr-auto text-black"
+                        }`}
+                      >
+                        <p>{msg.text}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-white/70 text-center mt-5">No messages yet</p>
+                  )}
               </div>
 
         
