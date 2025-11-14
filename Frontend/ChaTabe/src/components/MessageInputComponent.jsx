@@ -3,7 +3,7 @@ import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut } fr
 import axios from "axios";
 
 //Pass the props
-export const MessageInputComponent = ({senderId, receiverId,senderUsername,receiverUsername}) => {
+export const MessageInputComponent = ({senderId, receiverId,senderUsername,receiverUsername, handleSelectUser}) => {
   
     const [message,setMessage] = useState('')
 
@@ -33,6 +33,10 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
             ,{withCredentials:true})
 
             console.log('Message sent successfully')
+
+              if (handleSelectUser) {
+                await handleSelectUser(receiverId);
+            }
 
             setMessage('')
 

@@ -21,6 +21,7 @@ const Home = () => {
   const [messages, setMessages] = useState([]);
   const [conversationId, setConversationId] = useState(null);
 
+  const [selectedContactData, setSelectedContactData] = useState()
 
 
 
@@ -49,9 +50,16 @@ const Home = () => {
 
   },[]);
 
-  
+
+    useEffect(() => {
+    if (!userId) return;
+    handleSelectUser(userId);
+  }, [userId]);
+    
 
   const selectedUser = userData?.user?.contacts?.find(user => user._id === userId);
+  console.log("id",userId)
+ 
 
   const handleSearch = async() => {
 
@@ -109,27 +117,47 @@ const Home = () => {
       }
     };
 
-
+    
     const handleSelectUser = async (receiverId) => {
       setUserId(receiverId);
 
+      if (!receiverId || !userData?.user?._id) return;
+
       try {
       
-        console.log(receiverId)
+        console.log('Receiver Id: ',receiverId)
 
         const convoRes = await axios.post("http://localhost:3000/conversation", {
           senderId: userData?.user?._id,
           receiverId,
         });
 
-        setConversationId(convoRes.data._id);
         
+        const convo = convoRes.data?.[0];
+        console.log("convo",convo)
+
+        // const conversationId = convoRes.data?.[0]?.conversationId;
+
+         if (!convo) {
+            console.error("No conversation returned");
+            return;
+          }
+
+
+          setConversationId(convo.conversationId);
+
       
         const messageRes = await axios.post("http://localhost:3000/messages", {
-          conversationId: convoRes.data._id,
-        });
+          conversationId: convo.conversationId,
+          senderId: userData?.user?._id,
+          receiverId
+        },{withCredentials:true});
+
+        
 
         setMessages(messageRes.data);
+        console.log('Message: ',messages)
+        console.log("")
 
       } catch (error) {
         console.error("Error fetching conversation or messages:", error);
@@ -145,7 +173,7 @@ const Home = () => {
         return '#ffffffff'; 
       };    
 
-
+ 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-[#ffffff] to-[#9176e8]">
       
@@ -240,7 +268,10 @@ const Home = () => {
                 userData.user.contacts.map(user => (
                   <li
                     key={user._id}
-                    className="flex items-center gap-3 bg-gray-200 p-2 rounded-md shadow-sm cursor-pointer"
+                     className={`flex items-center gap-3 p-2 rounded-md shadow-sm cursor-pointer ${
+                        userId === user._id ? 'bg-[#6f2db7]' : 'bg-gray-200'
+                      }`}
+
                     onClick={() => handleSelectUser(user._id)}
                   >
                     
@@ -251,10 +282,13 @@ const Home = () => {
                       className="w-10 h-10 lg:w-10 lg:h-10 rounded-full object-cover border-2"
                     />
                     <div className="flex-1">
-                      <p className="font-semibold text-sm text-gray-800">{user.username}</p>
+                      <p className={`font-semibold text-sm text-gray-800 ${
+                        userId === user._id ? 'text-white' : 'text-black'
+                      }`}>{user.username}</p>
                       <div className="flex justify-between text-xs text-gray-500 px-1">
                         <p>{user.recentMessage}</p>
                         <p>{user.recentMessageTime}</p>
+                        
                       </div>
                     </div>
                   </li>
@@ -269,7 +303,7 @@ const Home = () => {
             
           </ul>
         </div>
-
+          
 
         <div className="bg-gray-500 flex-[4] lg:flex-[3] min-h-[300px] md:min-h-[89vh] rounded-md shadow-xl flex flex-col p-2 px-3 ">
           {selectedUser ? (
@@ -300,7 +334,7 @@ const Home = () => {
                         className={`p-2 my-1 rounded-lg w-fit max-w-[70%] ${
                           msg.sender === userData?.user?._id
                             ? "bg-blue-600 ml-auto text-white"
-                            : "bg-gray-300 mr-auto text-black"
+                            : "bg-red-300 mr-auto text-black"  
                         }`}
                       >
                         <p>{msg.text}</p>
@@ -322,7 +356,7 @@ const Home = () => {
                 <ThumbsUp className="text-gray-700 cursor-pointer text-white" size={30} />
               </div> */}
 
-              <MessageInputComponent  senderId={userData?.user?._id} receiverId={selectedUser?._id} senderUsername={userData?.user?.username} receiverUsername={selectedUser?.username} />
+              <MessageInputComponent  senderId={userData?.user?._id} receiverId={selectedUser?._id} senderUsername={userData?.user?.username} receiverUsername={selectedUser?.username} handleSelectUser={handleSelectUser} />
             </>
           ) : (
             <p className="text-white text-sm p-3">Select a user to start chatting</p>
