@@ -58,7 +58,7 @@ const Home = () => {
     
 
   const selectedUser = userData?.user?.contacts?.find(user => user._id === userId);
-  console.log("id",userId)
+  
  
 
   const handleSearch = async() => {
@@ -123,26 +123,38 @@ const Home = () => {
 
       if (!receiverId || !userData?.user?._id) return;
 
+       let findContact = null; // Declare it here
+
+        if (userData?.user?.contacts?.length > 0) {
+          findContact = userData.user.contacts.find(contact => contact._id === receiverId);
+        }
+
+        if (!findContact) return;
+
       try {
       
-        console.log('Receiver Id: ',receiverId)
-
+   
         const convoRes = await axios.post("http://localhost:3000/conversation", {
           senderId: userData?.user?._id,
           receiverId,
         });
 
-        
-        const convo = convoRes.data?.[0];
-        console.log("convo",convo)
+        let convo;
 
-        // const conversationId = convoRes.data?.[0]?.conversationId;
+        if (Array.isArray(convoRes.data)) {
+          convo = convoRes.data.find(
+            (contact) =>
+              (contact.senderId === userData?.user?._id && contact.receiverId === receiverId) ||
+              (contact.receiverId === userData?.user?._id && contact.senderId === receiverId)
+          );
+        } else {
+          convo = convoRes.data;
+        }
 
          if (!convo) {
             console.error("No conversation returned");
             return;
           }
-
 
           setConversationId(convo.conversationId);
 
@@ -156,9 +168,7 @@ const Home = () => {
         
 
         setMessages(messageRes.data);
-        console.log('Message: ',messages)
-        console.log("")
-
+     
       } catch (error) {
         console.error("Error fetching conversation or messages:", error);
       }
@@ -328,18 +338,20 @@ const Home = () => {
 
               <div className="flex-1 overflow-y-auto p-2 mb-3 rounded-md">
                  {messages.length > 0 ? (
-                    messages.map((msg) => (
+                    messages.map((msg) => {
+                      console.log('Hello world: ',msg)
+                      return(
                       <div
                         key={msg._id}
                         className={`p-2 my-1 rounded-lg w-fit max-w-[70%] ${
-                          msg.sender === userData?.user?._id
+                          msg.sender._id === userData?.user?._id
                             ? "bg-blue-600 ml-auto text-white"
                             : "bg-red-300 mr-auto text-black"  
                         }`}
                       >
                         <p>{msg.text}</p>
                       </div>
-                    ))
+                    )})
                   ) : (
                     <p className="text-white/70 text-center mt-5">No messages yet</p>
                   )}
@@ -356,8 +368,14 @@ const Home = () => {
                 <ThumbsUp className="text-gray-700 cursor-pointer text-white" size={30} />
               </div> */}
 
-              <MessageInputComponent  senderId={userData?.user?._id} receiverId={selectedUser?._id} senderUsername={userData?.user?.username} receiverUsername={selectedUser?.username} handleSelectUser={handleSelectUser} />
+              <MessageInputComponent  
+                senderId={userData?.user?._id}
+                receiverId={selectedUser?._id}
+                senderUsername={userData?.user?.username}
+                receiverUsername={selectedUser?.username}
+                handleSelectUser={handleSelectUser} />
             </>
+
           ) : (
             <p className="text-white text-sm p-3">Select a user to start chatting</p>
           )}

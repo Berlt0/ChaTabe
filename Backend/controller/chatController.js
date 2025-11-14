@@ -59,8 +59,7 @@ export const getMessages = async (req,res) => {
 
         if(!senderId || !receiverId) return res.status(400).json({ success: false, message: "senderId and receiverId are required" });
 
-        console.log(senderId,receiverId)
-
+      
         let convoId = conversationId;
 
         if (!convoId) {
@@ -82,8 +81,6 @@ export const getMessages = async (req,res) => {
         .populate("receiver", "username moodStatus profilePic")
         .sort({createdAt: 1})
 
-        console.log('Messages:',messages)
-        console.log(" ")
         res.status(200).json(messages)
 
     } catch (error) {
