@@ -1,9 +1,19 @@
 import { useState } from "react";
 import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut } from "lucide-react";
 import axios from "axios";
+import { io } from "socket.io-client";
+
+
+// Initialize socket
+const socket = io("http://localhost:3000", {
+    withCredentials: true
+});
+
+let typingTimeout = null;
+
 
 //Pass the props
-export const MessageInputComponent = ({senderId, receiverId,senderUsername,receiverUsername, handleSelectUser}) => {
+export const MessageInputComponent = ({senderId, receiverId,senderUsername,receiverUsername, handleSelectUser,conversationId}) => {
   
     const [message,setMessage] = useState('')
 
@@ -31,6 +41,16 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
                 text:message,
             }
             ,{withCredentials:true})
+
+              const savedMessage = response.data;
+
+                // 🔥 SEND REAL-TIME MESSAGE OVER SOCKET.IO
+                socket.emit("sendMessage", {
+                    conversationId: savedMessage.conversationId,
+                    message: savedMessage
+                });
+
+                 socket.emit("stopTyping", { conversationId, senderId });
 
             console.log('Message sent successfully')
 
@@ -60,16 +80,35 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
             type="text"
             name="input_message"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+                setMessage(e.target.value)
+                
+                
+                socket.emit("typing", {
+                    conversationId,
+                    senderId
+                });
+
+                if (typingTimeout) clearTimeout(typingTimeout);
+
+                typingTimeout = setTimeout(() => {
+                    socket.emit("stopTyping", {
+                        conversationId,
+                        senderId
+                    });
+                }, 1200); 
+                        
+            
+            }}
             placeholder="Input message here"
             className="p-2 outline-none w-full border border-gray-300 rounded-md placeholder-white text-white"
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
 
-            <ThumbsUp className="text-gray-700 cursor-pointer text-white" size={30} />
+            <ThumbsUp className="text-gray-700 cursor-pointer text-white" size={30} onClick={sendMessage}/>
 
         </div>
-
+    
   )
 }
 

@@ -1,13 +1,23 @@
 // ✅ Imports and setup
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut } from "lucide-react";
 import MessageInputComponent from '../components/MessageInputComponent';
+import ChatBox from '../components/chatBox';
+import { io } from "socket.io-client";
+
+// CONNECT SOCKET.IO
+const socket = io("http://localhost:3000", {
+  withCredentials: true
+});
 
 axios.defaults.withCredentials = true;
 
 const Home = () => {
+
+  const messagesEndRef = useRef(null); 
+
   const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [userId, setUserId] = useState(0);
@@ -21,11 +31,50 @@ const Home = () => {
   const [messages, setMessages] = useState([]);
   const [conversationId, setConversationId] = useState(null);
 
-  const [selectedContactData, setSelectedContactData] = useState()
+  const [isTyping, setIsTyping] = useState(false);
+
+// ⬅ auto-scroll reference
+
+  useEffect(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }, [messages]);
+
+ useEffect(() => {
+
+  // --- receive message ---
+  socket.on("receiveMessage", (data) => {
+    if (data.conversationId === conversationId) {
+      setMessages((prev) => [...prev, data]);
+    }
+  });
+
+  // --- typing indicator ---
+  socket.on("typing", (data) => {
+    if (data.conversationId === conversationId) {
+      setIsTyping(true);
+    }
+  });
+
+  socket.on("stopTyping", (data) => {
+    if (data.conversationId === conversationId) {
+      setIsTyping(false);
+    }
+  });
+
+  // --- cleanup on unmount ---
+  return () => {
+    socket.off("receiveMessage");
+    socket.off("typing");
+    socket.off("stopTyping");
+  };
+
+}, [conversationId]);
 
 
 
-
+  
   useEffect(() => {
     async function fetchUserData() {
       
@@ -157,6 +206,8 @@ const Home = () => {
           }
 
           setConversationId(convo.conversationId);
+
+           socket.emit("joinRoom", convo.conversationId);
 
       
         const messageRes = await axios.post("http://localhost:3000/messages", {
@@ -336,13 +387,13 @@ const Home = () => {
               <div className="w-full bg-white h-[1px] my-2"></div>
 
 
-              <div className="flex-1 overflow-y-auto p-2 mb-3 rounded-md">
+              {/* <div className="flex-1 overflow-y-auto p-2 mb-3 rounded-md sm:h-[70vh] md:h-[80vh] max-h-[70vh]">
                  {messages.length > 0 ? (
-                    messages.map((msg) => {
-                      console.log('Hello world: ',msg)
+                    messages.map((msg,index) => {
                       return(
                       <div
-                        key={msg._id}
+                        key={msg._id || index}
+                        ref={index === messages.length - 1 ? messagesEndRef : null}
                         className={`p-2 my-1 rounded-lg w-fit max-w-[70%] ${
                           msg.sender._id === userData?.user?._id
                             ? "bg-blue-600 ml-auto text-white"
@@ -355,25 +406,23 @@ const Home = () => {
                   ) : (
                     <p className="text-white/70 text-center mt-5">No messages yet</p>
                   )}
-              </div>
-
-        
-              {/* <div className="p-2 w-full flex flex-row gap-3 items-center rounded-md">
-                <input
-                  type="text"
-                  name="input_message"
-                  placeholder="Input message here"
-                  className="p-2 outline-none w-full border border-gray-300 rounded-md placeholder-white text-white"
-                />
-                <ThumbsUp className="text-gray-700 cursor-pointer text-white" size={30} />
               </div> */}
+
+              <ChatBox 
+              messages={messages}
+              messagesEndRef={messagesEndRef}
+              userData={userData}
+              moodColorHandler={moodColorHandler}/>
+
 
               <MessageInputComponent  
                 senderId={userData?.user?._id}
                 receiverId={selectedUser?._id}
                 senderUsername={userData?.user?.username}
                 receiverUsername={selectedUser?.username}
-                handleSelectUser={handleSelectUser} />
+                handleSelectUser={handleSelectUser} 
+                conversationId={conversationId}/>
+              
             </>
 
           ) : (

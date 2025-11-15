@@ -16,6 +16,7 @@ router.get('/search', verifyToken, searchUser)
 router.post('/add-contact', verifyToken, addContact)
 router.get('/user-data',verifyToken,getUserData)
 
+// router.get('/refresh-token',refreshToken)
 
 
 router.post('/send-message', verifyToken, sendMessage)
