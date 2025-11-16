@@ -1,10 +1,13 @@
 // ✅ Imports and setup
+import axios from '../api/axiosSetup.js';
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+
 import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut } from "lucide-react";
 import MessageInputComponent from '../components/MessageInputComponent';
 import ChatBox from '../components/chatBox';
+import ConfirmationModal from '../components/confirmationModal.jsx';
 import { io } from "socket.io-client";
 
 // CONNECT SOCKET.IO
@@ -32,6 +35,11 @@ const Home = () => {
   const [conversationId, setConversationId] = useState(null);
 
   const [isTyping, setIsTyping] = useState(false);
+  const [editingMessage, setEditingMessage] = useState(null);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState(null);
+
 
 // ⬅ auto-scroll reference
 
@@ -74,6 +82,32 @@ const Home = () => {
 
 
 
+  useEffect(() => {
+    socket.on("updateMessage", (data) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === data.messageId ? { ...msg, text: data.text } : msg
+        )
+      );
+    });
+
+    return () => socket.off("updateMessage");
+  }, [conversationId]);
+
+
+  useEffect(() => {
+    socket.on("deleteMessage", (data) => {
+      if (data.conversationId === conversationId) {
+        setMessages((prev) =>
+          prev.filter((msg) => msg._id !== data.messageId)
+        );
+      }
+    });
+
+    return () => socket.off("deleteMessage");
+  }, [conversationId]);
+
+
   
   useEffect(() => {
     async function fetchUserData() {
@@ -94,7 +128,9 @@ const Home = () => {
 
     }
  
-      fetchUserData();
+      setTimeout(() => {
+        fetchUserData(); 
+    }, 100);
 
 
   },[]);
@@ -234,10 +270,52 @@ const Home = () => {
         return '#ffffffff'; 
       };    
 
- 
-  return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-r from-[#ffffff] to-[#9176e8]">
       
+      const openDeleteModal = (msg) => {
+          setMessageToDelete(msg);
+          setShowDeleteModal(true);
+        };
+
+    
+        const closeDeleteModal = () => {
+          setShowDeleteModal(false);
+          setMessageToDelete(null);
+        };
+
+        const confirmDelete = async () => {
+          if (!messageToDelete) return;
+          console.log('Deleting message:', messageToDelete);
+
+          try {
+            await axios.delete(
+              `http://localhost:3000/delete-message/${messageToDelete._id}`,
+              { withCredentials: true }
+            );
+
+            socket.emit("deleteMessage", {
+              conversationId,
+              messageId: messageToDelete._id,
+            });
+
+            
+            if (handleSelectUser) await handleSelectUser(selectedUser._id);
+          } catch (error) {
+            console.error("Delete failed:", error);
+          } finally {
+            closeDeleteModal();
+          }
+        };
+
+  return (
+    <div className="flex flex-col h-screen bg-gradient-to-r from-[#ffffff] to-[#9176e8]">
+
+      {showDeleteModal && (
+        <ConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={closeDeleteModal}
+          onConfirm={confirmDelete}
+        />
+      )}
     
       <header className="bg-white flex flex-row flex-wrap justify-between items-center px-3 py-2 border-b border-gray-100 gap-2">
 
@@ -366,7 +444,7 @@ const Home = () => {
         </div>
           
 
-        <div className="bg-gray-500 flex-[4] lg:flex-[3] min-h-[300px] md:min-h-[89vh] rounded-md shadow-xl flex flex-col p-2 px-3 ">
+        <div className="bg-gray-500 flex-[4] lg:flex-[3] min-h-[300px] md:min-h-[89vh] rounded-md shadow-xl flex flex-col p-2 px-3 overflow-hidden ">
           {selectedUser ? (
             <>
             
@@ -408,11 +486,17 @@ const Home = () => {
                   )}
               </div> */}
 
+            
               <ChatBox 
               messages={messages}
               messagesEndRef={messagesEndRef}
               userData={userData}
-              moodColorHandler={moodColorHandler}/>
+              moodColorHandler={moodColorHandler}
+              setEditingMessage={setEditingMessage}
+              handleSelectUser={handleSelectUser}
+              conversationId={conversationId}
+              openDeleteModal={openDeleteModal}
+               />
 
 
               <MessageInputComponent  
@@ -421,7 +505,9 @@ const Home = () => {
                 senderUsername={userData?.user?.username}
                 receiverUsername={selectedUser?.username}
                 handleSelectUser={handleSelectUser} 
-                conversationId={conversationId}/>
+                conversationId={conversationId}
+                editingMessage={editingMessage}        
+                setEditingMessage={setEditingMessage}/>
               
             </>
 

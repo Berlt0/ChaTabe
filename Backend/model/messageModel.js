@@ -7,6 +7,7 @@ const messageSchema = new mongoose.Schema({
     senderUsername: { type: String, required: true },
     receiverUsername: { type: String, required: true },
     text: {type: String},
+    isDeleted: { type: Boolean, default: false,},
     createdAt: {type: Date, default: Date.now}
 })
 

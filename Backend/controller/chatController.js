@@ -90,6 +90,83 @@ export const getMessages = async (req,res) => {
 
 }
 
+
+export const editMessage = async (req, res) => {
+  const { id } = req.params;
+  const { text } = req.body;
+  const userId = req.user.id;
+
+  if (!text?.trim()) {
+    return res.status(400).json({ error: 'Message text cannot be empty' });
+  }
+
+  try {
+    const message = await Messages.findById(id);
+
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    if (message.sender.toString() !== userId) {
+      return res.status(403).json({ error: 'You can only edit your own messages' });
+    }
+
+    message.text = text;
+    message.updatedAt = new Date();
+
+    const updatedMessage = await message.save();
+    res.status(200).json(updatedMessage);
+  } catch (err) {
+    console.error('Error updating message:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+export const deleteMessage = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  try {
+    const message = await Messages.findById(id);
+
+    if (!message)
+      return res.status(404).json({ error: "Message not found" });
+
+    if (message.sender.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You can only delete your own messages" });
+    }
+
+    // Soft delete: update instead of delete
+    const updatedMessage = await Messages.findByIdAndUpdate(
+      id,
+      {
+        text: "This message was deleted",
+        isDeleted: true,
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "Message deleted successfully",
+      messageId: id,
+      newText: "This message was deleted",
+      updatedMessage,
+    });
+  } catch (error) {
+    console.log("Error deleting message: ", error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong. Internal server error",
+    });
+  }
+};
+
+
+
+
 //This is responsible for finding conversations
 
 export const getUserConversations = async (req, res) => {

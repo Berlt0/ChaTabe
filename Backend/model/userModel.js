@@ -38,10 +38,11 @@ const userSchema = new mongoose.Schema({
 
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Users'  // Reference to other users
-    },
-
-]
-
+    },]
+    ,refreshToken: {
+        type: String,
+        default: null
+    }
 })
 
 export default mongoose.model("Users", userSchema)

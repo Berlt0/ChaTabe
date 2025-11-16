@@ -2,6 +2,9 @@ import bcrypt from 'bcrypt'
 
 import User from '../model/userModel.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/token.js'
+import jwt from 'jsonwebtoken'
+import dotenv from 'dotenv'
+dotenv.config()
 
 export const registerUser = async (req, res) => {
   try {
@@ -66,7 +69,19 @@ export const loginUser = async(req,res) => {
       // secure: process.env.NODE_ENV === 'production',
       secure: false,
       sameSite: 'Lax',
+      maxAge: 60 * 1000,
+      path: "/",
+      
     });
+
+    res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "Lax",
+    maxAge: 24 * 60 * 60 * 1000,
+    path: "/", 
+  }); 
+
 
     
     //Save refresh token in databse
@@ -84,13 +99,61 @@ export const loginUser = async(req,res) => {
 
 }
 
-export const logoutUser = (req, res) => {
-  res.clearCookie('token', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/', // make sure this matches the path used when setting the cookie
-  });
+
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ success: false, message: "No refresh token",expired: true });
+    }
+
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    console.log("DECODED: ", decoded)
+
+    // Find user
+    const user = await User.findById(decoded.id);
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(403).json({ success: false, message: "Invalid refresh token" });
+    }
+
+    // Generate new access token
+    const newAccessToken = generateAccessToken(user);
+
+    // Send new access token as cookie
+    res.cookie("token", newAccessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
+      maxAge: 15 * 60 * 1000, 
+      path: "/",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Access token refreshed",
+    });
+
+  } catch (err) {
+    console.log(err);
+    return res.status(403).json({ success: false, message: "Expired refresh token",expired: true });
+  }
+};
+
+
+export const logoutUser = async(req, res) => {
+ try {
+    const userId = req.user?.id;
+    if (userId) {
+      await User.findByIdAndUpdate(userId, { refreshToken: null });
+    }
+  } catch (err) {
+    console.error("Logout error:", err);
+  }
+
+  res.clearCookie('token', { httpOnly: true, secure: false, sameSite: 'Lax', path: '/' });
+  res.clearCookie('refreshToken', { httpOnly: true, secure: false, sameSite: 'Lax', path: '/' });
 
   res.status(200).json({ success: true, message: 'Logged out successfully' });
 };

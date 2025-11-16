@@ -10,11 +10,11 @@ export const verifyToken = (req, res, next) => {
   const token = req.cookies.token;
 
   if (!token) {
-    return res.status(401).json({ success: false, message: 'No token, authorization denied' });
+    return res.status(401).json({ success: false, message: 'No token, authorization denied',expired: false });
   }
 
   try {
-
+    
     //Verify if user has token
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -22,6 +22,12 @@ export const verifyToken = (req, res, next) => {
     next();
 
   } catch (error) {
+
+     if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ success: false,message: 'Token expired', expired: true });
+    }
+
+
     return res.status(403).json({ success: false, message: 'Invalid or expired token' });
   }
 };
