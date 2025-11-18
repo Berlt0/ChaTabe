@@ -4,10 +4,11 @@ import axios from '../api/axiosSetup.js';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut } from "lucide-react";
+import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut, X } from "lucide-react";
 import MessageInputComponent from '../components/MessageInputComponent';
 import ChatBox from '../components/chatBox';
 import ConfirmationModal from '../components/confirmationModal.jsx';
+import RightPanel from '../components/rightPanel.jsx';
 import { io } from "socket.io-client";
 
 // CONNECT SOCKET.IO
@@ -24,6 +25,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [userId, setUserId] = useState(0);
+  const [isSearching,setIsSearching] = useState(false)
   const [searchMessage,setSearchMessage] = useState(false)
   
   const [query, setQuery] = useState("");
@@ -463,30 +465,7 @@ const Home = () => {
 
         
               <div className="w-full bg-white h-[1px] my-2"></div>
-
-
-              {/* <div className="flex-1 overflow-y-auto p-2 mb-3 rounded-md sm:h-[70vh] md:h-[80vh] max-h-[70vh]">
-                 {messages.length > 0 ? (
-                    messages.map((msg,index) => {
-                      return(
-                      <div
-                        key={msg._id || index}
-                        ref={index === messages.length - 1 ? messagesEndRef : null}
-                        className={`p-2 my-1 rounded-lg w-fit max-w-[70%] ${
-                          msg.sender._id === userData?.user?._id
-                            ? "bg-blue-600 ml-auto text-white"
-                            : "bg-red-300 mr-auto text-black"  
-                        }`}
-                      >
-                        <p>{msg.text}</p>
-                      </div>
-                    )})
-                  ) : (
-                    <p className="text-white/70 text-center mt-5">No messages yet</p>
-                  )}
-              </div> */}
-
-            
+        
               <ChatBox 
               messages={messages}
               messagesEndRef={messagesEndRef}
@@ -516,62 +495,96 @@ const Home = () => {
           )}
         </div>
 
-        {
-          selectedUser ? (
+      {/* {
+        selectedUser ? (
+          <>
+            {isSearching ? (
 
-            <>
-            
-              <div className="p-2 flex-1 lg:flex-[0.9] flex-shrink-0 flex-grow-0 basis-[10%] min-w-0 bg-gray-500 rounded-lg gap-5 flex flex-col">
-                
-                <div className='w-full flex flex-col items-center pt-5 gap-2'>
+              <div className="p-2 px-2 flex-1 lg:flex-[0.9] flex-shrink-0 flex-grow-0 basis-[10%] min-w-0 bg-gray-700 rounded-lg gap-5 flex flex-col">
 
-                  <img 
-                  src={selectedUser.profilePic} 
-                  alt={`${selectedUser.username}, Profile picture`}
-                  className='w-25 h-25 lg:w-18 lg:h-18 rounded-full object-cover  '/>
+                <div className='w-full p-2 flex flex-col gap-5'>
 
-                  <h1 className='text-center text-xl text-white lg:text-lg'>{selectedUser.username}</h1>
+                  <div className='flex flex-row items-center gap-4'>
 
-                </div>
-
-                <div className=' w-full p-2 flex flex-col'>
-                  
-                  <div className=' flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-100 transition duration-50 ease' 
-                  onClick={() => setSearchMessage(true)}>
- 
-                        <Search size={18} className="flex-shrink-0 lg:hidden"/>
-                        <Search size={16} className='flex-shrink-0 lg:block'/>
-                        <input type="text" name="search-message" placeholder='Search Message' className='px-2 outline-none block placeholder-black  hover:placeholder-black border-1 w-full lg:text-[0.8em]' />
-                    
-                  </div>
-                  
-                  <div className=' flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-100 transition duration-50 ease'>        
- 
-                        <MessageCircleOff size={18} className=' flex-shrink-0 lg:hidden'/>
-                        <MessageCircleOff size={16} className=' flex-shrink-0 lg:block'/>
-                        <p className='px-2 w-full lg:text-[0.8em] '>Block Contact</p>
-                    
+                    <X size={18} className='font-bold text-white cursor-pointer' onClick={() => setIsSearching(false)}/>
+                    <p className='text-black font-bold text-white'>Search</p>
+                 
                   </div>
 
-                   <div className=' flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-100 transition duration-50 ease' onClick={Logout}>        
- 
-                        <LogOut size={18} className=' flex-shrink-0 lg:hidden'/>
-                        <LogOut size={16} className=' flex-shrink-0 lg:block'/>
-                        <p className='px-2 w-full lg:text-[0.8em] '>Logout</p>
-                    
+                  
+                  <div>
+
+                    <div className='flex flex-row items-center gap-2 mb-2 '>
+                      <Search size={19} className='flex-shrink-0  text-white'/>
+                      <input type="text" name="search-convo" className='outline-none placeholder-white caret-white text-white' placeholder='Search in conversation'/>
+
+                    </div>
+
+                  </div>
+
+                   <div className=''>
+                      <li className='list-none hover:bg-gray-900 cursor-pointer'>
+                        <p className='text-white'>Search Results</p>
+                        
+                      </li>
+                      
                   </div>
 
                 </div>
-                
 
               </div>
-            
-            </>
+            ) : (
+              <div className="p-2 px-2 flex-1 lg:flex-[0.9] flex-shrink-0 flex-grow-0 basis-[10%] min-w-0 bg-gray-700 rounded-lg gap-5 flex flex-col">
 
-          ):(
-            <>
-            </>
-          )}
+                <div className='w-full flex flex-col items-center pt-5 gap-2'>
+                  <img
+                    src={selectedUser.profilePic}
+                    alt={`${selectedUser.username}, Profile picture`}
+                    className='w-25 h-25 lg:w-18 lg:h-18 rounded-full object-cover'
+                  />
+                  <h1 className='text-center text-xl text-white lg:text-lg'>
+                    {selectedUser.username}
+                  </h1>
+                </div>
+
+                <div className='w-full p-2 flex flex-col'>
+                  <div
+                    className='flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-900 transition duration-50 ease'
+                    onClick={() => setIsSearching(true)}
+                  >
+                    <Search size={18} className="flex-shrink-0 lg:hidden text-white"/>
+                    <Search size={16} className='flex-shrink-0 lg:block text-white'/>
+                    <p className='px-2 block w-full lg:text-[0.8em] text-white'>
+                      Search message
+                    </p>
+                  </div>
+
+                  <div className='flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-900 transition duration-50 ease'>
+                    <MessageCircleOff size={18} className='flex-shrink-0 lg:hidden text-white'/>
+                    <MessageCircleOff size={16} className='flex-shrink-0 lg:block text-white'/>
+                    <p className='px-2 w-full lg:text-[0.8em] text-white'>Block Contact</p>
+                  </div>
+
+                  <div
+                    className='flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-900 transition duration-50 ease'
+                    onClick={Logout}
+                  >
+                    <LogOut size={18} className='flex-shrink-0 lg:hidden text-white'/>
+                    <LogOut size={16} className='flex-shrink-0 lg:block text-white'/>
+                    <p className='px-2 w-full lg:text-[0.8em] text-white'>Logout</p>
+                  </div>
+                </div>
+
+              </div>
+            )}
+          </>
+        ) : (
+          <></>
+        )
+      } */}
+
+      <RightPanel selectedUser={selectedUser} isSearching={isSearching} setIsSearching={setIsSearching} Logout={Logout} conversationId={conversationId} moodColorHandler={moodColorHandler}/>
+
         
       </main>
     </div>
