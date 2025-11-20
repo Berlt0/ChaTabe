@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { X, Search, MessageCircleOff, LogOut } from "lucide-react";
 
-const RightPanel = ({ selectedUser, isSearching, setIsSearching, Logout, conversationId,moodColorHandler }) => {
+const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutModal, conversationId,moodColorHandler,setShowBlockModal }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,26 +29,29 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, Logout, convers
     }
   };
 
-  // This runs every time searchQuery changes
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);   // Clear results when input is empty
-      setIsLoading(false);
-    }
-  }, [searchQuery]);
+  
+    useEffect(() => {
+      if (!searchQuery.trim()) {
+        setSearchResults([]);   
+        setIsLoading(false);
+      }
+    }, [searchQuery]);
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();        // Prevent form submit / newline
-      searchHandler();
-    }
-    if (e.key === 'Escape') {
-      setIsSearching(false);
-      setSearchResults([]);
-      setSearchQuery('');
-    }
-  };
 
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();        
+        searchHandler();
+      }
+      if (e.key === 'Escape') {
+        setIsSearching(false);
+        setSearchResults([]);
+        setSearchQuery('');
+      }
+    };
+
+
+    
   return (
     <>
       {selectedUser ? (
@@ -102,7 +105,7 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, Logout, convers
                         className="bg-gray-800/50 backdrop-blur rounded-lg p-4 hover:bg-gray-750 transition cursor-pointer border border-gray-700"
                         onClick={() => {
                           console.log("Jump to message:", msg._id);
-                          // Later: scroll to this message
+                        
                         }}
                       >
                         <div className="flex items-start gap-3">
@@ -155,12 +158,13 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, Logout, convers
                   <span className="font-sm">Search in chat</span>
                 </button>
 
-                <button className='flex items-center gap-4 rounded-lg py-2 px-5 hover:bg-gray-600 transition text-white text-left cursor-pointer'>
+                <button className='flex items-center gap-4 rounded-lg py-2 px-5 hover:bg-gray-600 transition text-white text-left cursor-pointer' onClick={() => setShowBlockModal(true)}>
+
                   <MessageCircleOff size={20} />
                   <span className="font-sm">Block Contact</span>
                 </button>
 
-                <button onClick={Logout} className='flex items-center gap-4 rounded-lg py-2 px-5 hover:bg-red-600/30 transition text-white text-left cursor-pointer'>
+                <button onClick={() => setShowLogoutModal(true)} className='flex items-center gap-4 rounded-lg py-2 px-5 hover:bg-red-600/30 transition text-white text-left cursor-pointer'>
                   <LogOut size={20} />
                   <span className="font-sm">Logout</span>
                 </button>

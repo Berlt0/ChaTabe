@@ -6,6 +6,11 @@ import Messages from "../model/messageModel.js"
 // This function handles sending message
 
 export const sendMessage = async (req,res) => {
+
+    if (isBlocked) {
+      alert("You have blocked this user. Unblock first.");
+      return;
+    }
     
     try {
         
@@ -182,12 +187,16 @@ export const getUserConversations = async (req, res) => {
       const senderId = userId;
       const receiver = conv.members.find((member) => member._id.toString() !== userId);
       const receiverId = receiver ? receiver._id : null;
+      const isBlocked = conv.isBlocked;
+      const blockedBy = conv.blockedBy;
 
       return {
         conversationId: conv._id,
         senderId,
         receiverId,
-        receiverInfo: receiver, // optional: includes username, profilePic, moodStatus
+        receiverInfo: receiver, 
+        isBlocked,
+        blockedBy
       };
     });
 

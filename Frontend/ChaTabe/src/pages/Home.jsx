@@ -8,6 +8,9 @@ import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut, X }
 import MessageInputComponent from '../components/MessageInputComponent';
 import ChatBox from '../components/chatBox';
 import ConfirmationModal from '../components/confirmationModal.jsx';
+import BlockConfirmationModal from '../components/blockConfirmationModal.jsx';
+import UnblockConfirmationModal from '../components/unblockConfirmationModal.jsx';
+import LogoutConfirmationModal from '../components/logoutConfirmationModal.jsx';
 import RightPanel from '../components/rightPanel.jsx';
 import { io } from "socket.io-client";
 
@@ -41,6 +44,14 @@ const Home = () => {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState(null);
+
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [isBlockedBy, setIsBlockedBy] = useState(false);
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [isBlocking, setIsBlocking] = useState(false);
+  const [showUnblockModal, setShowUnblockModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
 
 // ⬅ auto-scroll reference
@@ -193,6 +204,9 @@ const Home = () => {
     
     const Logout = async () => {
 
+      if (loggingOut) return;      
+      setLoggingOut(true);
+
       try {
        
         await axios.post('http://localhost:3000/logout', {}, { withCredentials: true });
@@ -201,6 +215,9 @@ const Home = () => {
 
       } catch (error) {
         console.error('Logout failed:', error);
+      }finally {
+        setLoggingOut(false);
+        setShowLogoutModal(false);  
       }
     };
 
@@ -210,7 +227,7 @@ const Home = () => {
 
       if (!receiverId || !userData?.user?._id) return;
 
-       let findContact = null; // Declare it here
+       let findContact = null;
 
         if (userData?.user?.contacts?.length > 0) {
           findContact = userData.user.contacts.find(contact => contact._id === receiverId);
@@ -244,8 +261,9 @@ const Home = () => {
           }
 
           setConversationId(convo.conversationId);
+          setIsBlocked(convo.isBlocked || false);
 
-           socket.emit("joinRoom", convo.conversationId);
+          socket.emit("joinRoom", convo.conversationId);
 
       
         const messageRes = await axios.post("http://localhost:3000/messages", {
@@ -273,40 +291,77 @@ const Home = () => {
       };    
 
       
-      const openDeleteModal = (msg) => {
-          setMessageToDelete(msg);
-          setShowDeleteModal(true);
-        };
+    const openDeleteModal = (msg) => {
+        setMessageToDelete(msg);
+        setShowDeleteModal(true);
+    };
 
     
-        const closeDeleteModal = () => {
-          setShowDeleteModal(false);
-          setMessageToDelete(null);
-        };
+    const closeDeleteModal = () => {
+        setShowDeleteModal(false);
+        setMessageToDelete(null);
+    };
 
-        const confirmDelete = async () => {
-          if (!messageToDelete) return;
+    const confirmDelete = async () => {
+
+        if (!messageToDelete) return;
+
           console.log('Deleting message:', messageToDelete);
 
-          try {
-            await axios.delete(
-              `http://localhost:3000/delete-message/${messageToDelete._id}`,
-              { withCredentials: true }
-            );
+        try {
 
-            socket.emit("deleteMessage", {
-              conversationId,
-              messageId: messageToDelete._id,
-            });
+          await axios.delete(`http://localhost:3000/delete-message/${messageToDelete._id}`,
+            { withCredentials: true }
+          );
+
+          socket.emit("deleteMessage", {
+            conversationId,
+            messageId: messageToDelete._id,
+          });
 
             
-            if (handleSelectUser) await handleSelectUser(selectedUser._id);
+          if (handleSelectUser) await handleSelectUser(selectedUser._id);
+
           } catch (error) {
+
             console.error("Delete failed:", error);
+
           } finally {
+
             closeDeleteModal();
+
           }
         };
+
+
+
+    const blockContact =  async () => {
+
+      if (isBlocking) return;      
+      setIsBlocking(true);
+
+      try {
+        
+          const response = await axios.post('http://localhost:3000/block-contact',{
+              conversationId
+          },{withCredentials:true})
+
+          console.log('Contact block status changed:', response.data);
+          setIsBlocked(response.data.isBlocked);
+          setIsBlockedBy(response.data.blockedBy);
+          
+          
+
+      } catch (error) {
+
+          console.log("Error blocking contact:", error);
+        
+      } finally {
+        setIsBlocking(false);
+        setShowBlockModal(false);    // ← close modal even on error
+      }
+    }
+
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-r from-[#ffffff] to-[#9176e8]">
@@ -318,6 +373,37 @@ const Home = () => {
           onConfirm={confirmDelete}
         />
       )}
+
+      { showBlockModal && (
+        <BlockConfirmationModal 
+          showBlockModal={showBlockModal} 
+          setShowBlockModal={setShowBlockModal} 
+          blockContact={blockContact}
+          isBlocking={isBlocking}
+          />
+
+      )}
+
+      { showUnblockModal && (
+        <UnblockConfirmationModal 
+          showUnblockModal={showUnblockModal} 
+          setShowUnblockModal={setShowUnblockModal} 
+          blockContact={blockContact}
+          isBlocking={isBlocking}
+          />
+
+      )}
+
+      { showLogoutModal && (
+        <LogoutConfirmationModal
+          showLogoutModal={showLogoutModal}        
+          setShowLogoutModal={setShowLogoutModal}
+          loggingOut={loggingOut}
+          Logout={Logout}
+          />
+
+      )}
+    
     
       <header className="bg-white flex flex-row flex-wrap justify-between items-center px-3 py-2 border-b border-gray-100 gap-2">
 
@@ -467,15 +553,15 @@ const Home = () => {
               <div className="w-full bg-white h-[1px] my-2"></div>
         
               <ChatBox 
-              messages={messages}
-              messagesEndRef={messagesEndRef}
-              userData={userData}
-              moodColorHandler={moodColorHandler}
-              setEditingMessage={setEditingMessage}
-              handleSelectUser={handleSelectUser}
-              conversationId={conversationId}
-              openDeleteModal={openDeleteModal}
-               />
+                messages={messages}
+                messagesEndRef={messagesEndRef}
+                userData={userData}
+                moodColorHandler={moodColorHandler}
+                setEditingMessage={setEditingMessage}
+                handleSelectUser={handleSelectUser}
+                conversationId={conversationId}
+                openDeleteModal={openDeleteModal}
+              />
 
 
               <MessageInputComponent  
@@ -486,7 +572,15 @@ const Home = () => {
                 handleSelectUser={handleSelectUser} 
                 conversationId={conversationId}
                 editingMessage={editingMessage}        
-                setEditingMessage={setEditingMessage}/>
+                setEditingMessage={setEditingMessage}
+                isBlocked={isBlocked}
+                blockedBy={isBlockedBy}
+                blockContact={blockContact}
+                setShowBlockModal={setShowBlockModal}
+                setShowUnblockModal={setShowUnblockModal}
+                currentUserId={userData?.user?._id}
+                
+              />
               
             </>
 
@@ -495,95 +589,20 @@ const Home = () => {
           )}
         </div>
 
-      {/* {
-        selectedUser ? (
-          <>
-            {isSearching ? (
-
-              <div className="p-2 px-2 flex-1 lg:flex-[0.9] flex-shrink-0 flex-grow-0 basis-[10%] min-w-0 bg-gray-700 rounded-lg gap-5 flex flex-col">
-
-                <div className='w-full p-2 flex flex-col gap-5'>
-
-                  <div className='flex flex-row items-center gap-4'>
-
-                    <X size={18} className='font-bold text-white cursor-pointer' onClick={() => setIsSearching(false)}/>
-                    <p className='text-black font-bold text-white'>Search</p>
-                 
-                  </div>
-
-                  
-                  <div>
-
-                    <div className='flex flex-row items-center gap-2 mb-2 '>
-                      <Search size={19} className='flex-shrink-0  text-white'/>
-                      <input type="text" name="search-convo" className='outline-none placeholder-white caret-white text-white' placeholder='Search in conversation'/>
-
-                    </div>
-
-                  </div>
-
-                   <div className=''>
-                      <li className='list-none hover:bg-gray-900 cursor-pointer'>
-                        <p className='text-white'>Search Results</p>
-                        
-                      </li>
-                      
-                  </div>
-
-                </div>
-
-              </div>
-            ) : (
-              <div className="p-2 px-2 flex-1 lg:flex-[0.9] flex-shrink-0 flex-grow-0 basis-[10%] min-w-0 bg-gray-700 rounded-lg gap-5 flex flex-col">
-
-                <div className='w-full flex flex-col items-center pt-5 gap-2'>
-                  <img
-                    src={selectedUser.profilePic}
-                    alt={`${selectedUser.username}, Profile picture`}
-                    className='w-25 h-25 lg:w-18 lg:h-18 rounded-full object-cover'
-                  />
-                  <h1 className='text-center text-xl text-white lg:text-lg'>
-                    {selectedUser.username}
-                  </h1>
-                </div>
-
-                <div className='w-full p-2 flex flex-col'>
-                  <div
-                    className='flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-900 transition duration-50 ease'
-                    onClick={() => setIsSearching(true)}
-                  >
-                    <Search size={18} className="flex-shrink-0 lg:hidden text-white"/>
-                    <Search size={16} className='flex-shrink-0 lg:block text-white'/>
-                    <p className='px-2 block w-full lg:text-[0.8em] text-white'>
-                      Search message
-                    </p>
-                  </div>
-
-                  <div className='flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-900 transition duration-50 ease'>
-                    <MessageCircleOff size={18} className='flex-shrink-0 lg:hidden text-white'/>
-                    <MessageCircleOff size={16} className='flex-shrink-0 lg:block text-white'/>
-                    <p className='px-2 w-full lg:text-[0.8em] text-white'>Block Contact</p>
-                  </div>
-
-                  <div
-                    className='flex flex-row items-center gap-2 rounded py-1 px-3 cursor-pointer hover:bg-gray-900 transition duration-50 ease'
-                    onClick={Logout}
-                  >
-                    <LogOut size={18} className='flex-shrink-0 lg:hidden text-white'/>
-                    <LogOut size={16} className='flex-shrink-0 lg:block text-white'/>
-                    <p className='px-2 w-full lg:text-[0.8em] text-white'>Logout</p>
-                  </div>
-                </div>
-
-              </div>
-            )}
-          </>
-        ) : (
-          <></>
-        )
-      } */}
-
-      <RightPanel selectedUser={selectedUser} isSearching={isSearching} setIsSearching={setIsSearching} Logout={Logout} conversationId={conversationId} moodColorHandler={moodColorHandler}/>
+      
+              <RightPanel
+                selectedUser={selectedUser} 
+                isSearching={isSearching} 
+                setIsSearching={setIsSearching} 
+                Logout={Logout} 
+                conversationId={conversationId} 
+                moodColorHandler={moodColorHandler}
+                blockContact={blockContact}
+                setShowBlockModal={setShowBlockModal} 
+                showBlockModal={showBlockModal}
+                setShowLogoutModal={setShowLogoutModal}
+                
+              />
 
         
       </main>

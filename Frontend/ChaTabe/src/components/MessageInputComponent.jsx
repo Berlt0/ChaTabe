@@ -14,11 +14,15 @@ let typingTimeout = null;
 
 
 //Pass the props
-export const MessageInputComponent = ({senderId, receiverId,senderUsername,receiverUsername, handleSelectUser,conversationId, editingMessage,   setEditingMessage}) => {
+export const MessageInputComponent = ({senderId, receiverId,senderUsername,receiverUsername, handleSelectUser,conversationId, editingMessage,   setEditingMessage, isBlocked,blockedBy, setShowUnblockModal,currentUserId}) => {
   
     const [message,setMessage] = useState('')
     const [inputText, setInputText] = useState('');
     const [isClose,setIsClose] = useState(true)
+
+    
+    const isMeWhoBlocked = isBlocked && blockedBy === currentUserId;
+    const isOtherWhoBlocked = isBlocked && blockedBy !== currentUserId;
 
     useEffect(() =>{
 
@@ -140,47 +144,89 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
         }, 1200);
   };
 
-  
+   
    return (
-    <div className="relative p-1 w-full mt-2">
-      
-        {editingMessage && (
-        <div className="absolute left-0 right-0 -top-10 bg-gray-100 text-black text-sm font-medium px-3 py-2 pr-3 ml-1 mr-14 rounded-t-md flex items-center justify-between z-10 animate-in slide-in-from-top duration-200">
-            <span>Edit message</span>
-            <X
-            size={21}
-            className="cursor-pointer hover:bg-gray-500 p-1 hover:text-white hover:rounded-xl transition-all"
-            onClick={cancelEdit}
+
+    <>
+
+     {isBlocked ? (
+
+        <div className="flex flex-col items-center py-4 bg-gray-800 px-5 gap-2 rounded-lg">
+
+            {isMeWhoBlocked ? (
+
+            <>
+
+                <h2 className="text-white font-bold text-xl">You block User</h2>
+
+                <div className="border-white border-1 w-full my-2"></div>
+
+                <div className="flex flex-row items-center p-1 gap-5">
+                    <p className="text-white">You can't message in this chat, and you won't receive their messages.</p>
+                    <button className="bg-red-500 py-2 px-5 text-white cursor-pointer rounded-lg hover:rounded-3xl transition-all ease-in" onClick={() =>setShowUnblockModal(true)}>Unblock</button>
+                </div>
+
+            </>    
+
+            ):isOtherWhoBlocked ?(
+
+            <>
+
+                <h2 className="text-white font-bold text-xl">You've been blocked</h2>
+                <div className="border-white border-1 w-full my-2"></div>
+                <p className="text-gray-400 text-sm mt-2">You can't send messages to this user.</p>
+         
+
+            </>
+
+            ):null}
+
+            
+        </div>
+
+        ):(
+
+        <div className="relative p-1 w-full mt-2">
+        
+            {editingMessage && (
+            <div className="absolute left-0 right-0 -top-10 bg-gray-100 text-black text-sm font-medium px-3 py-2 pr-3 ml-1 mr-14 rounded-t-md flex items-center justify-between z-10 animate-in slide-in-from-top duration-200">
+                <span>Edit message</span>
+                <X
+                size={21}
+                className="cursor-pointer hover:bg-gray-500 p-1 hover:text-white hover:rounded-xl transition-all"
+                onClick={cancelEdit}
+                />
+            </div>
+            )}
+
+        
+            <div className="flex items-center gap-5">
+            <input
+                type="text"
+                value={inputText}
+                onChange={handleTyping}
+                onKeyDown={(e) => {
+                if (e.key === "Enter") handleSubmit();
+                if (e.key === "Escape" && editingMessage) cancelEdit();
+                }}
+                placeholder={editingMessage ? "Edit message…" : "Input message here"}
+                className={`
+                flex-1 p-3 rounded-md outline-none
+                bg-gray-700 text-white placeholder-gray-400
+                border ${editingMessage ? "border-gray-300" : "border-gray-600"}
+                focus:border-blue-500 transition-colors
+                `}
             />
-        </div>
-        )}
 
-  
-        <div className="flex items-center gap-5">
-        <input
-            type="text"
-            value={inputText}
-            onChange={handleTyping}
-            onKeyDown={(e) => {
-            if (e.key === "Enter") handleSubmit();
-            if (e.key === "Escape" && editingMessage) cancelEdit();
-            }}
-            placeholder={editingMessage ? "Edit message…" : "Input message here"}
-            className={`
-            flex-1 p-3 rounded-md outline-none
-            bg-gray-700 text-white placeholder-gray-400
-            border ${editingMessage ? "border-gray-300" : "border-gray-600"}
-            focus:border-blue-500 transition-colors
-            `}
-        />
-
-        <ThumbsUp
-            className="text-white cursor-pointer hover:text-green-400 transition-colors"
-            size={30}
-            onClick={handleSubmit}
-        />
+            <ThumbsUp
+                className="text-white cursor-pointer hover:text-green-400 transition-colors"
+                size={30}
+                onClick={handleSubmit}
+            />
+            </div>
         </div>
-    </div>
+    )}
+    </>
 );
 }
 

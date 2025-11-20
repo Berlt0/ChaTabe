@@ -16,14 +16,12 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
             <X size={18} />
         </button>
 
-        <h3 className="text-lg font-semibold mb-6 text-center">
-          Do you want to delete this message?
-        </h3>
+        <h3 className="text-lg font-semibold mb-6 text-center">Do you want to delete this message?</h3>
 
         <div className="flex justify-center gap-4">
             
-          <button onClick={onConfirm} className="px-6 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition cursor-pointer transition">Yes</button>
-          <button onClick={onClose} className="px-6 py-2 bg-gray-600 text-white rounded-md font-medium hover:bg-gray-700 transition cursor-pointer transition">No</button>
+          <button onClick={onConfirm} className="px-6 py-2 bg-red-600 text-white rounded-md  hover:bg-red-700 transition cursor-pointer transition">Delete</button>
+          <button onClick={onClose} className="px-6 py-2 bg-gray-600 text-white rounded-md  hover:bg-gray-700 transition cursor-pointer transition">Cancel</button>
 
         </div>
       </div>
