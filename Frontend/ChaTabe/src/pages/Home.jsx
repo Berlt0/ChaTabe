@@ -262,6 +262,7 @@ const Home = () => {
 
           setConversationId(convo.conversationId);
           setIsBlocked(convo.isBlocked || false);
+          setIsBlockedBy(convo.blockedBy || null);
 
           socket.emit("joinRoom", convo.conversationId);
 
