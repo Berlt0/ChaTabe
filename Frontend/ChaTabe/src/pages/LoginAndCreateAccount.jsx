@@ -86,8 +86,16 @@ const Login = () => {
       setLoginUsername('')
       setLoginPassword('')
 
-      console.log(response.data.message)
-      navigate('/home')
+      console.log(response.data)
+      if(response.data.user.isAdmin){
+
+        navigate('/admin-dashboard')
+
+      }else{
+        
+        navigate('/home')
+
+      }
 
       
 

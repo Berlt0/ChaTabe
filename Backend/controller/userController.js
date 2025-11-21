@@ -38,6 +38,8 @@ export const loginUser = async(req,res) => {
 
   try {
 
+    
+
     const {username,password} = req.body;
 
     if(!username || !password){
@@ -45,6 +47,7 @@ export const loginUser = async(req,res) => {
     }
 
     const user = await User.findOne({username})
+    
 
     if(!user) {
       return res.status(401).json({success:false,message: 'Invalid crendentials'})
@@ -55,6 +58,11 @@ export const loginUser = async(req,res) => {
     if(!isMatch){
       return res.status(401).json({success:false,message:"Invalid credentials"})
     }
+
+
+    await User.findByIdAndUpdate(user._id, { 
+      isActive: true,
+    });
 
     //Generate Tokens
 
@@ -89,7 +97,7 @@ export const loginUser = async(req,res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    res.status(200).json({success:true, message:'Login successful', user:{ id: user._id, username: user.username } })
+    res.status(200).json({success:true, message:'Login successful', user:{ id: user._id, username: user.username,isAdmin:user.isAdmin } })
 
 
   } catch (error) {
@@ -142,10 +150,11 @@ export const refreshAccessToken = async (req, res) => {
 
 
 export const logoutUser = async(req, res) => {
+
  try {
     const userId = req.user?.id;
     if (userId) {
-      await User.findByIdAndUpdate(userId, { refreshToken: null });
+      await User.findByIdAndUpdate(userId, { refreshToken: null, isActive: false });
     }
   } catch (err) {
     console.error("Logout error:", err);

@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.post('/register', registerUser);
 router.post('/login',loginUser)
-router.post('/logout', logoutUser);
+router.post('/logout', verifyToken,logoutUser);
 router.get('/search', verifyToken, searchUser)
 router.post('/add-contact', verifyToken, addContact)
 router.get('/user-data',verifyToken,getUserData)

@@ -31,10 +31,12 @@ const userSchema = new mongoose.Schema({
     
     },moodStatus:{
         type: String,
-        required: true
+        required: true,
+        default: 'Happy'
     },isActive:{
         type: Boolean,
-        required: true
+        required: true,
+        default: false
     },contacts: [
 
         {

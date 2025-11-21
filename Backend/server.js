@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser';
 
 import connectDB from './config/db.js'
 import userRoute from './route/userRoute.js'
+import adminRoute from './route/adminRoute.js'
 
 dotenv.config()
 
@@ -78,7 +79,7 @@ io.on("connection", (socket) => {
 
 
 app.use('/',userRoute);
-
+app.use('/admin', adminRoute);  
 
 // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

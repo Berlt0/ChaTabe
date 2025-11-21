@@ -7,11 +7,7 @@ import Messages from "../model/messageModel.js"
 
 export const sendMessage = async (req,res) => {
 
-    if (isBlocked) {
-      alert("You have blocked this user. Unblock first.");
-      return;
-    }
-    
+     
     try {
         
         const {senderId,receiverId, text} = req.body;
