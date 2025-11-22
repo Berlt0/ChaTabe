@@ -1,7 +1,7 @@
 import express from 'express'
-import Message from '../../model/messageModel.js';
+import Users from '../../model/userModel.js';
 
-export const getMessagesToday = async (req, res) => {
+export const getRegisteredUserToday = async (req, res) => {
 
   try {
 
@@ -9,14 +9,14 @@ export const getMessagesToday = async (req, res) => {
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
-    const messagesToday = await Message.countDocuments({
+    const usersToday = await Users.countDocuments({
       createdAt: { $gte: startOfDay, $lt: endOfDay },
-      isDeleted: { $ne: true }
+      isAdmin: { $ne: true }     
     });
 
-    res.status(200).json({success: true,message: 'Successfully retrieve total messages sent today' ,messagesToday});
+    res.status(200).json({success: true,message: 'Successfully retrieve total registered users for today' ,usersToday});
   } catch (error) {
-    console.error("Error fetching messages today:", error);
+    console.error("Error fetching data:", error);
     res.status(500).json({ success: false, message: "Internal Error" });
   }
 };

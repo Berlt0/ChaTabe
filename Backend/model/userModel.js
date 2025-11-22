@@ -37,6 +37,11 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         required: true,
         default: false
+    },isBanned:{
+        type: Boolean,
+        required: true,
+        default: false
+
     },contacts: [
 
         {
@@ -47,6 +52,9 @@ const userSchema = new mongoose.Schema({
     ,refreshToken: {
         type: String,
         default: null
+    },createdAt: {
+        type: Date, 
+        default: Date.now
     }
 })
 
