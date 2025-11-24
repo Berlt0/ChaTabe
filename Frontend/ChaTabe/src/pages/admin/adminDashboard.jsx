@@ -6,6 +6,7 @@ import {ResponsiveContainer,LineChart,CartesianGrid,XAxis,YAxis,Tooltip,Line} fr
 import MessagePanel from './messagesPage'
 
 import UserPage from "./userPage";
+import BannedUsersPanel from "./bannedUserPanel";
 
 const AdminDashboard = () => {
 
@@ -13,12 +14,12 @@ const AdminDashboard = () => {
 
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalMessages, setTotalMessages] = useState(0);
-  const [totalAdmins, setTotalAdmins] = useState(0);
   const [totalActiveUsers, setTotalActiveUsers] = useState(0);
+  const [totalBannedUsers,setTotalBannedUsers] = useState(0)
   const [totalMessageSentToday,setTotalMessageSentToday] = useState(0)
   const [registeredUserToday,setRegisteredUserToday] = useState(0)
   const [currentPage, setCurrentPage] = useState('dashboard'); 
-  const [whatPressed, setWhatPressed] = useState(null)
+
 
  
 
@@ -35,19 +36,20 @@ const AdminDashboard = () => {
 
           axios.get("http://localhost:3000/admin/total-users"),
           axios.get("http://localhost:3000/admin/total-messages"),
-          axios.get("http://localhost:3000/admin/total-admins"),
           axios.get("http://localhost:3000/admin/active-users"),
           axios.get("http://localhost:3000/admin/messages-today"),
-          axios.get("http://localhost:3000/admin/registered-users-today")
+          axios.get("http://localhost:3000/admin/total-banned-users"),
+          axios.get("http://localhost:3000/admin/registered-users-today"),
+          
 
         ])
 
   
         setTotalUsers(responses[0].data.totalUsers );
         setTotalMessages(responses[1].data.totalMessages );
-        setTotalAdmins(responses[2].data.totalAdmins );
-        setTotalActiveUsers(responses[3].data.activeUsers );
-        setTotalMessageSentToday(responses[4].data.messagesToday)
+        setTotalActiveUsers(responses[2].data.activeUsers );
+        setTotalMessageSentToday(responses[3].data.messagesToday)
+        setTotalBannedUsers(responses[4].data.bannedUsers)
         setRegisteredUserToday(responses[5].data.usersToday)
 
     } catch (error) {
@@ -56,6 +58,9 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = async () => {
+
+    if(!confirm("Do you want to logout?")) return
+    
     await axios.post("http://localhost:3000/logout",{withCredentials:true});
     navigate("/");
   };
@@ -124,8 +129,7 @@ const AdminDashboard = () => {
         <nav className="flex flex-col gap-4">
 
           <button 
-            onClick={() => {setWhatPressed('dashboard')
-                            setCurrentPage('dashboard')}}
+            onClick={() => setCurrentPage('dashboard')}
 
             className={`flex items-center gap-3 text-left px-3 py-2 cursor-pointer  rounded-lg transition ease-in ${
               currentPage === 'dashboard' 
@@ -142,9 +146,7 @@ const AdminDashboard = () => {
                   : 'text-gray-900 hover:bg-gray-200'
                     }`} 
 
-              onClick={() => {setWhatPressed('users')
-                setCurrentPage('users')
-              }}>
+              onClick={() => setCurrentPage('users')}>
 
             <Users size={20} /> Users
 
@@ -156,9 +158,7 @@ const AdminDashboard = () => {
                   : 'text-gray-900 hover:bg-gray-200'
                     }`} 
 
-              onClick={() => {setWhatPressed('messages')
-                setCurrentPage('messages')
-              }}>
+              onClick={() =>setCurrentPage('messages')}>
 
             <MessageSquare size={20} /> Messages
 
@@ -167,12 +167,11 @@ const AdminDashboard = () => {
           <button className={`flex items-center gap-3 text-left px-3 cursor-pointer py-2 rounded-lg transition ease-in ${
                 currentPage === 'security' 
                   ? 'bg-blue-600 text-white font-semibold shadow-lg' 
-                  : 'text-gray-700 hover:bg-gray-100'
+                  : 'text-gray-900 hover:bg-gray-200'
                     }`} 
 
-              onClick={() => setCurrentPage('security')}>
-
-            <Shield size={20} /> Security
+              onClick={() => setCurrentPage('bannedUsers') }>
+            <Ban size={20} /> Banned Users
 
           </button>
 
@@ -188,11 +187,13 @@ const AdminDashboard = () => {
 
       <main className="ml-64 p-5 overflow-y-auto ">
 
-        {whatPressed === 'users'? (
+        {currentPage === 'users'? (
           <UserPage moodColorHandler={moodColorHandler}/>
-        ):whatPressed === 'messages'? (
+        ):currentPage === 'messages'? (
           <MessagePanel moodColorHandler={moodColorHandler}/>
-        ):whatPressed === 'dashboard'?(
+        ):currentPage === 'bannedUsers' ? (
+          <BannedUsersPanel moodColorHandler={moodColorHandler}/>
+        ):currentPage === 'dashboard'?(
 
           <>
 
@@ -291,7 +292,7 @@ const AdminDashboard = () => {
                 </div>
                 </div>
 
-                <p className="text-4xl font-bold text-gray-900">{}</p>
+                <p className="text-4xl font-bold text-gray-900">{totalBannedUsers}</p>
                 <p className="text-sm text-gray-500 mt-2">Currently banned</p>
             </div>
 

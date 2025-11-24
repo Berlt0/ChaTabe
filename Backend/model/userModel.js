@@ -42,6 +42,9 @@ const userSchema = new mongoose.Schema({
         required: true,
         default: false
 
+    },bannedAt: {
+        type: Date,
+        default: Date.now
     },contacts: [
 
         {

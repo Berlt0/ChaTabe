@@ -26,7 +26,9 @@ export const getUsers = async (req, res) => {
       .select('username email isActive isBanned createdAt profilePic moodStatus')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean()
+      
 
     const total = await User.countDocuments(query);
 

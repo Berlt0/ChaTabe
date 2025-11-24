@@ -1,28 +1,35 @@
 // controller/admin/getMessages.js
 import Messages from "../../model/messageModel.js";
 
+// ← INSERTED: Safe regex function (prevents crashes)
+const escapeRegExp = (string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 export const getAllMessages = async (req, res) => {
   try {
     const { search, page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
 
-    // Always exclude deleted messages
-    let query = { isDeleted: { $ne: true } };
+    let query = { isDeleted: false }; 
 
-    // Search only message text or content
+   
     if (search && search.trim() !== "") {
+      const safeSearch = escapeRegExp(search.trim()); 
+
       query.$or = [
-        { text: { $regex: search, $options: "i" } },
-        { content: { $regex: search, $options: "i" } }
+        { text: { $regex: safeSearch, $options: "i" } },    
+        { content: { $regex: safeSearch, $options: "i" } }  
       ];
     }
 
     const messages = await Messages.find(query)
-      .populate("sender", "username profilePic moodStatus")
+      .populate("sender", "username profilePic moodStatus isBanned")
       .populate("receiver", "username")
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(Number(limit));
+      .limit(Number(limit))
+      .lean(); 
 
     const total = await Messages.countDocuments(query);
 

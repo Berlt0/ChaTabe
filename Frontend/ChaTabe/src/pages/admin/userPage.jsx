@@ -29,6 +29,28 @@ const UserPage = ({moodColorHandler}) => {
     setLoading(false);
   };
 
+
+  const banUser = async (userId, username) => {
+
+    if (!confirm(`Do you want to ban ${username} ?`)) return;
+
+    try {
+    
+      const response = await axios.post(`http://localhost:3000/admin/ban/${userId}`, { isBanned: true, });
+      
+      if (response.data.success) {
+
+        alert(`${username} has been banned`);
+        fetchUsers(); 
+      
+      }
+    } catch (error) {
+      console.error("Ban failed:", error.response || error);
+      alert("Failed to ban user. Check console.");
+    }
+  };
+
+
   useEffect(() => {
     fetchUsers();
   }, [page, search, statusFilter]);
@@ -130,7 +152,12 @@ const UserPage = ({moodColorHandler}) => {
 
                       <button className="p-2 hover:bg-gray-300 rounded-lg cursor-pointer"><Eye size={18} /></button>
                       <button className="p-2 hover:bg-gray-300 rounded-lg cursor-pointer"><MessageCircle size={18} /></button>
-                      <button className="p-2 hover:bg-red-300 rounded-lg text-red-600 cursor-pointer"><Ban size={18} /></button>
+                      <button disabled={user.isBanned}
+                          className={`p-3 rounded-xl cursor-pointer transition ${
+                            user.isBanned 
+                              ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
+                              : "bg-orange-100 hover:bg-orange-200 text-orange-600"
+                          }`} onClick={() => banUser(user._id, user.username) }><Ban size={18} /></button>
                     
                     </div>
                   </td>

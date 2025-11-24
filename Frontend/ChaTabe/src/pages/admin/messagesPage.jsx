@@ -4,6 +4,9 @@ import axios from "../../api/axiosSetup";
 import { Search, Trash2, Ban, AlertCircle, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 
 const MessagePanel = ({moodColorHandler}) => {
+
+  axios.defaults.withCredentials = true;
+
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -43,17 +46,27 @@ const MessagePanel = ({moodColorHandler}) => {
     fetchMessages();
   }, [page]);
 
-  const deleteMessage = async (msgId) => {
-    if (!confirm("Delete this message permanently?")) return;
-    await axios.delete(`/admin/message/${msgId}`);
-    fetchMessages(); 
+  
+   const banUser = async (userId, username) => {
+
+    if (!confirm(`Do you want to ban ${username} ?`)) return;
+
+    try {
+    
+      const response = await axios.post(`http://localhost:3000/admin/ban/${userId}`, { isBanned: true, });
+      
+      if (response.data.success) {
+
+        alert(`${username} has been banned`);
+        fetchMessages(); 
+      
+      }
+    } catch (error) {
+      console.error("Ban failed:", error.response || error);
+      alert("Failed to ban user. Check console.");
+    }
   };
 
-  const banUser = async (userId, username) => {
-    if (!confirm(`Ban ${username}?`)) return;
-    await axios.post(`/admin/ban/${userId}`, { ban: true });
-    alert(`${username} has been banned`);
-  };
 
   const totalPages = Math.ceil(totalMessages / limit);
 
@@ -109,9 +122,18 @@ const MessagePanel = ({moodColorHandler}) => {
                           className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
                         />
                         <div>
-                          <p className="font-semibold text-gray-900">
-                            {msg.sender?.username || "Unknown"}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            
+                              <p className="font-semibold text-gray-900">
+                                {msg.sender?.username || "Unknown"}
+                              </p>
+                                {msg.sender?.isBanned && ( 
+                                  <span className="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">
+                                    Banned
+                                  </span>
+                                )}
+                              
+                            </div>
                           <p className="text-gray-900 mb-1">
                             {msg.text}
                           </p>
@@ -128,12 +150,17 @@ const MessagePanel = ({moodColorHandler}) => {
                     </div>
 
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                      <button onClick={() => deleteMessage(msg._id)} className="p-3 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl">
-                        <Trash2 size={18} />
-                      </button>
-                      <button onClick={() => banUser(msg.sender._id, msg.sender.username)} className="p-3 bg-orange-100 hover:bg-orange-200 text-orange-600 rounded-xl">
-                        <Ban size={18} />
-                      </button>
+                      <button 
+                          onClick={() => banUser(msg.sender._id, msg.sender.username)} 
+                          disabled={msg.sender?.isBanned}
+                          className={`p-3 rounded-xl cursor-pointer transition ${
+                            msg.sender?.isBanned 
+                              ? "bg-gray-200 text-gray-500 cursor-not-allowed" 
+                              : "bg-orange-100 hover:bg-orange-200 text-orange-600"
+                          }`}
+                        >
+                          <Ban size={18} />
+                        </button>
                     </div>
                   </div>
                 </div>

@@ -9,6 +9,8 @@ import { getRegisteredUserToday } from '../controller/admin/getTotalRegisteredUs
 import { getStatsByRange } from '../controller/admin/getStats.js';
 import { getUsers } from '../controller/admin/getUsers.js';
 import { getAllMessages} from '../controller/admin/getMessages.js';
+import { banUser,unbanUser,getBannedUsers } from '../controller/admin/banUser.js';
+import { getTotalBannedUsers } from '../controller/admin/getTotalBannedUser.js';
 
 
 const router = express.Router(); 
@@ -22,6 +24,11 @@ router.get('/registered-users-today', verifyToken,adminOnly,getRegisteredUserTod
 router.get('/stats', verifyToken, adminOnly, getStatsByRange);
 router.get('/users',verifyToken,adminOnly,getUsers)
 router.get('/messages',verifyToken,adminOnly,getAllMessages)
+router.get('/total-banned-users',verifyToken,adminOnly,getTotalBannedUsers)
+
+router.post('/ban/:userId', verifyToken,adminOnly,banUser);           
+router.post('/unban/:userId', verifyToken, adminOnly,unbanUser);       
+router.get('/banned-users', verifyToken, adminOnly, getBannedUsers);
 
 
 export default router;
