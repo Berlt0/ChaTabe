@@ -42,9 +42,8 @@ const BannedUsersPanel = ({moodColorHandler}) => {
     }
   };
 
-  const filtered = users.filter(u =>
-    u.username.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase())
+    const filtered = users.filter(u => 
+    u.username && u.username.toLowerCase().includes(search.toLowerCase().trim())
   );
 
   return (
@@ -91,7 +90,7 @@ const BannedUsersPanel = ({moodColorHandler}) => {
               <div key={user._id} className="p-6 hover:bg-red-50 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <img src={user.profilePic} className="w-10 h-10 object-cover rounded-full border-2 " style={{borderColor: moodColorHandler(user.moodStatus)}}/>
+                    <img src={user.profilePic || "/default-avatar.png"} className="w-10 h-10 object-cover rounded-full border-2 " style={{borderColor: moodColorHandler(user.moodStatus)}}/>
                     <UserX className="absolute -top-2 -right-2 text-red-600 bg-white rounded-full p-1 border" size={24} />
                   </div>
                   <div>
