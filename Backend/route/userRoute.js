@@ -7,6 +7,7 @@ import { searchMessage } from '../controller/searchMessage.js';
 
 import { getMessages, sendMessage, getUserConversations ,editMessage, deleteMessage } from '../controller/chatController.js';
 import { blockContact } from '../controller/blockUser.js';
+import { updateMood } from '../controller/updateMood.js';
 
 const router = express.Router();
 
@@ -29,6 +30,7 @@ router.delete('/delete-message/:id', verifyToken,deleteMessage)
 
 router.post('/search-message', verifyToken, searchMessage);
 router.post('/block-contact', verifyToken, blockContact);
+router.post('/update-mood', verifyToken, updateMood);
 
 
 

@@ -1,5 +1,5 @@
 import { useState,useEffect } from "react";
-import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut,X } from "lucide-react";
+import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut,X ,SendHorizontal } from "lucide-react";
 import axios from "axios";
 import { io } from "socket.io-client";
 
@@ -151,7 +151,7 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
 
      {isBlocked ? (
 
-        <div className="flex flex-col items-center py-4 bg-gray-800 px-5 gap-2 rounded-lg">
+        <div className="flex flex-col items-center py-4 bg-red-700 px-5 gap-2 rounded-lg">
 
             {isMeWhoBlocked ? (
 
@@ -174,7 +174,7 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
 
                 <h2 className="text-white font-bold text-xl">You've been blocked</h2>
                 <div className="border-white border-1 w-full my-2"></div>
-                <p className="text-gray-400 text-sm mt-2">You can't send messages to this user.</p>
+                <p className="text-white text-sm mt-2">You can't send messages to this user.</p>
          
 
             </>
@@ -190,10 +190,10 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
         
             {editingMessage && (
             <div className="absolute left-0 right-0 -top-10 bg-gray-100 text-black text-sm font-medium px-3 py-2 pr-3 ml-1 mr-14 rounded-t-md flex items-center justify-between z-10 animate-in slide-in-from-top duration-200">
-                <span>Edit message</span>
+                <span className="text-[#6f2db7]">Edit message</span>
                 <X
                 size={21}
-                className="cursor-pointer hover:bg-gray-500 p-1 hover:text-white hover:rounded-xl transition-all"
+                className="cursor-pointer hover:bg-[#6f2db7] p-1 hover:text-white hover:rounded-xl transition-all text-[#6f2db7]"
                 onClick={cancelEdit}
                 />
             </div>
@@ -211,15 +211,15 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
                 }}
                 placeholder={editingMessage ? "Edit message…" : "Input message here"}
                 className={`
-                flex-1 p-3 rounded-md outline-none
-                bg-gray-700 text-white placeholder-gray-400
-                border ${editingMessage ? "border-gray-300" : "border-gray-600"}
-                focus:border-blue-500 transition-colors
+                flex-1 p-3 rounded-lg outline-none
+                bg-white text-[#6f2db7] placeholder-[#6f2db7]
+                border ${editingMessage ? "border-[#6f2db7]" : "border-gray-300"}
+                focus:border-purple-700 border-1.7 transition-all ease-in transition-colors
                 `}
             />
 
-            <ThumbsUp
-                className="text-white cursor-pointer hover:text-green-400 transition-colors"
+            <SendHorizontal
+                className="text-white cursor-pointer  transition-colors"
                 size={30}
                 onClick={handleSubmit}
             />

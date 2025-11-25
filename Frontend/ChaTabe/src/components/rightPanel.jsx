@@ -57,7 +57,7 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
       {selectedUser ? (
         <>
           {isSearching ? (
-            <div className="flex flex-col flex-1 lg:flex-[0.9] min-w-0 basis-[10%] bg-gray-700 rounded-lg overflow-hidden">
+            <div className="flex flex-col flex-1 lg:flex-[0.9] min-w-0 basis-[10%] bg-[#6f2db7] rounded-lg overflow-hidden">
 
               {/* Header */}
               <div className="flex items-center gap-4 p-4 border-b border-gray-600">
@@ -75,11 +75,11 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
 
             
               <div className="p-4">
-                <div className='flex items-center gap-3 bg-gray-800 rounded-lg px-4 py-2'>
-                  <Search size={20} className='text-gray-400' />
+                <div className='flex items-center gap-3 bg-white rounded-lg px-4 py-2'>
+                  <Search size={20} className='text-[#6f2db7]' />
                   <input 
                     type="text" 
-                    className='flex-1 bg-transparent outline-none text-white placeholder-gray-400 caret-purple-500'
+                    className='flex-1 bg-transparent outline-none text-[#6f2db7] placeholder-purple-[#6f2db7] caret-purple-[#6f2db7]'
                     placeholder='Search in conversation...'
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -137,7 +137,7 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
             </div>
           ) : (
             
-            <div className="p-6 flex flex-col flex-1 lg:flex-[0.9] min-w-0 basis-[10%] bg-gray-700 rounded-lg gap-6">
+            <div className="p-6 flex flex-col flex-1 lg:flex-[0.9] min-w-0 basis-[10%] bg-purple-800 rounded-lg gap-6">
 
               <div className='flex flex-col items-center gap-4'>
 
@@ -153,20 +153,15 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
 
               <div className='flex flex-col gap-1 mt-3'>
 
-                <button onClick={() => setIsSearching(true)} className='flex items-center gap-4 rounded-lg py-2 px-5 hover:bg-gray-600 transition text-white text-left cursor-pointer'>
+                <button onClick={() => setIsSearching(true)} className='flex items-center gap-4 rounded-lg py-2 px-5 hover:bg-white hover:text-[#6f2db7] transition-all ease-in text-white text-left cursor-pointer '>
                   <Search size={20} />
                   <span className="font-sm">Search in chat</span>
                 </button>
 
-                <button className='flex items-center gap-4 rounded-lg py-2 px-5 hover:bg-gray-600 transition text-white text-left cursor-pointer' onClick={() => setShowBlockModal(true)}>
+                <button className='flex items-center gap-4 rounded-lg py-2 px-5 hover:bg-gray-600 transition-all text-white text-left cursor-pointer hover:bg-white hover:text-[#6f2db7] ease-in' onClick={() => setShowBlockModal(true)}>
 
                   <MessageCircleOff size={20} />
                   <span className="font-sm">Block Contact</span>
-                </button>
-
-                <button onClick={() => setShowLogoutModal(true)} className='flex items-center gap-4 rounded-lg py-2 px-5 hover:bg-red-600/30 transition text-white text-left cursor-pointer'>
-                  <LogOut size={20} />
-                  <span className="font-sm">Logout</span>
                 </button>
 
               </div>

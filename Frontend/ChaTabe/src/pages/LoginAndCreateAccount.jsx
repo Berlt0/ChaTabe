@@ -109,56 +109,61 @@ const Login = () => {
   }
   
   return (
-    <div className='h-screen bg-gray-600 flex items-center justify-center w-screen'>
+    <>
+
+    <div className='h-screen bg-gradient-to-b from-white via-[#e4e4eb] to-[#2d00c2] flex items-center justify-center w-screen rounded-xl '>
+
       {
       (isLoginPage)?(
+        <>
 
         <div className='bg-transparent mx-auto  p-6 w-8/12 sm:w-2/4 md:w-1/3 lg:w-2/6 xl:w-2/6 2xl:w-[20%]  shadow-2xl'>
-            <h1 className='text-4xl font-bold text-center text-white mb-3 2xl:text-3xl'>Login</h1>
-            <p className='text-center text-white text-sm mb-3 2xl:text-base 2xl:mb-4'>Don't have an account? <span className='text-yellow-500 cursor-pointer underline' onClick={() => setIsLoginPage(false)}>Create Account</span></p>
+            <h1 className='text-4xl font-bold text-center text-[#6f2db7] mb-3 2xl:text-3xl'>Login</h1>
+            <p className='text-center text-[#6f2db7] text-sm mb-3 2xl:text-base 2xl:mb-4'>Don't have an account? <span className='text-yellow-500 cursor-pointer underline' onClick={() => setIsLoginPage(false)}>Create Account</span></p>
 
             <form className='flex flex-col'>
 
-                <label className='text-white mb-1 2xl:text-base 2xl:mb-2'>Username:</label>
+                <label className='text-[#6f2db7] mb-1 2xl:text-base 2xl:mb-2'>Username:</label>
 
                 <input type="text" 
                 name="login-username" 
                 value={loginUsername}
                 onChange={(e) => setLoginUsername(e.target.value)}
                 placeholder='Enter your Username' 
-                className='bg-gray-300 px-3 py-2 mb-3 outline-none rounded-xl text-black 2xl:mb-4 2xl:py-3 2xl:text-sm'/>
+                className='bg-transparent px-3 py-3 mb-3 border-purple-700 border-1 transition-all ease-in outline-none rounded-xl text-black 2xl:mb-4 2xl:py-3 2xl:text-sm'/>
 
-                <label className='text-white mb-1 2xl:text-base 2xl:mb-2.5'>Password:</label>
+                <label className='text-[#6f2db7] mb-1 2xl:text-base 2xl:mb-2.5'>Password:</label>
 
                 <input type="password" 
                 name="login-password" 
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 placeholder='Enter your Password' 
-                className='bg-gray-300 px-3 py-2 outline-none rounded-xl text-black mb-4 2xl:py-3 2xl:mb-5 2xl:text-sm'/>
+                className='bg-transparent px-3 py-3 border-purple-700 border-1  transition-all ease-in outline-none rounded-xl text-black mb-4 2xl:py-3 2xl:mb-5 2xl:text-sm'/>
 
-                <button className='py-1.5 border-1 rounded-xl text-white cursor-pointer 2xl:py-2' onClick={handleLogin}>Login</button>
+                <button className='py-1.5 rounded-lg hover:rounded-3xl text-white bg-[#6f2db7] cursor-pointer 2xl:py-2 transition-all ease-in' onClick={handleLogin}>Login</button>
 
             </form>
             
         </div>
-
+        </>
       ):(
 
-         <div className='bg-transparent mx-auto  p-6 w-8/12 sm:w-2/4 md:w-1/3 lg:w-2/6 xl:w-2/6 2xl:w-[20%]  shadow-2xl'>
-            <h1 className='text-4xl font-bold text-center text-white mb-3 2xl:text-3xl'>Create Account</h1>
-            <p className='text-center text-white text-sm mb-3 2xl:text-base 2xl:mb-4'>Already have an account? <span className='text-yellow-500 cursor-pointer underline' onClick={() => setIsLoginPage(true)}>Login in here</span></p>
+         <div className='bg-transparent mx-auto  p-6 w-8/12 sm:w-2/4 md:w-1/3 lg:w-2/6 xl:w-2/6 2xl:w-[20%]  shadow-2xl shadow-2xl shadow-gray-700 rounded-xl'>
+
+            <h1 className='text-4xl font-bold text-center text-[#6f2db7] mb-3 2xl:text-3xl'>Create Account</h1>
+            <p className='text-center text-[#6f2db7] text-sm mb-3 2xl:text-base 2xl:mb-4'>Already have an account? <span className='text-yellow-500 cursor-pointer underline' onClick={() => setIsLoginPage(true)}>Login in here</span></p>
 
             <form className='flex flex-col'>
 
-                    <label className='text-white mb-1'>Username:</label>
+                    <label className='text-[#6f2db7] mb-1'>Username:</label>
 
                     <input type="text" 
                     name="registerUsername" 
                     value={registerUsername}
                     onChange={(e) => setRegisterUsername(e.target.value)}
                     placeholder='Enter your username' 
-                    className='bg-gray-300 px-3 py-2 mb-3 outline-none rounded-xl text-black'/>
+                    className='bg-transparent border-1 border-purple-700 placeholder-[#6f2db7] px-3 py-2.5 mb-3 outline-none rounded-xl text-black'/>
 
                
 
@@ -166,7 +171,7 @@ const Login = () => {
 
                   <div className='flex flex-col'>
 
-                    <label className='text-white mb-1'>Age:</label>
+                    <label className='text-[#6f2db7] mb-1'>Age:</label>
 
                     <input type='number' 
                     name="register-age" 
@@ -174,14 +179,14 @@ const Login = () => {
                     onChange={(e) => setAge(e.target.value)}
                     min="1"
                     placeholder='Enter your Age' 
-                    className='bg-gray-300 px-3 py-2 mb-3 outline-none rounded-xl text-black w-full'/>
+                    className='bg-transparent border-1 border-purple-700  px-3 py-2.5 mb-3 placeholder-[#6f2db7] outline-none rounded-xl text-black w-full'/>
 
                   </div>
                   
                 <div className="flex flex-col ">
-                  <label className="text-white mb-1">Gender:</label>
+                  <label className="text-[#6f2db7] mb-1">Gender:</label>
                   <div className="flex flex-row gap-4 text-white ">
-                    <label className="flex items-center gap-1">
+                    <label className="flex items-center gap-1 text-[#6f2db7]">
                       <input
                         type="radio"
                         name="gender"
@@ -192,7 +197,7 @@ const Login = () => {
                       Male
                     </label>
 
-                    <label className="flex items-center gap-1">
+                    <label className="flex items-center gap-1 text-[#6f2db7]">
                       <input
                         type="radio"
                         name="gender"
@@ -209,45 +214,49 @@ const Login = () => {
 
              
                 
-                <label className='text-white mb-1'>Email:</label>
+                <label className='text-[#6f2db7] mb-1'>Email:</label>
 
                 <input type="email" 
-                name="register-email"
-                value={registerEmail}
-                onChange={(e) => setRegisterEmail(e.target.value)}  
-                placeholder='Enter your Email' 
-                className='bg-gray-300 px-3 py-2 outline-none rounded-xl text-black mb-4 '/>
+                  name="register-email"
+                  value={registerEmail}
+                  onChange={(e) => setRegisterEmail(e.target.value)}  
+                  placeholder='Enter your Email' 
+                  className='bg-transparent border-1 border-purple-700  px-3 py-2.5 outline-none rounded-xl text-black mb-4  placeholder-[#6f2db7]'/>
 
-                <label className='text-white mb-1'>Password:</label>
+                <label className='text-[#6f2db7] mb-1'>Password:</label>
 
                 <input type="password" 
                 name="register-password"
                 value={registerPassword}
                 onChange={(e) => setRegisterPassword(e.target.value)} 
                 placeholder='Enter your Password'   
-                className='bg-gray-300 px-3 py-2 outline-none rounded-xl text-black mb-4 '/>
+                className='bg-transparent border-1 border-purple-700  px-3 py-2.5 outline-none rounded-xl text-black mb-4 placeholder-[#6f2db7]'/>
 
 
-                <label className='text-white mb-1'>Confirm Password:</label>
+                <label className='text-[#6f2db7] mb-1'>Confirm Password:</label>
 
                 <input type="password" 
                 name="confirm-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)} 
                 placeholder='Confirm your password' 
-                className='bg-gray-300 px-3 py-2 outline-none rounded-xl text-black mb-4 '/>
+                className='bg-transparent border-1 border-purple-700  px-3 py-2.5 outline-none rounded-xl text-black mb-4 placeholder-[#6f2db7]'/>
 
-                <button className='py-1.5 border-1 rounded-xl text-white cursor-pointer' onClick={handleRegister}>Submit</button>
+                <button className='py-2 rounded-lg hover:rounded-3xl transition-all ease-in text-white cursor-pointer bg-[#6f2db7] mb-2' onClick={handleRegister}>Submit</button>
 
             </form>
             
+        
+
         </div>
 
       )
 
     }
+ 
 
     </div>
+    </>
   )
 }
 

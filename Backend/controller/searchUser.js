@@ -9,11 +9,11 @@ export const searchUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Username required" });
     }
 
-    // Find users with similar username (exclude self)
+    
     const users = await User.find({
       username: { $regex: username, $options: 'i' }, // making it a case-insensitive 
       _id: { $ne: req.userId } // current logged-in user is not included on search
-    }).select('username email'); 
+    }).select('username email profilePic moodStatus'); // select only necessary fields
 
     res.status(200).json({ success: true, users });
   } catch (error) {

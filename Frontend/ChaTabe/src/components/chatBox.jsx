@@ -1,7 +1,7 @@
 
 import {Trash,Pencil} from 'lucide-react'
 
-const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMessage, handleSelectUser,conversationId,openDeleteModal}) => {
+const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMessage, handleSelectUser,conversationId,isBlocked,isBlockedBy,openDeleteModal}) => {
 
   
   
@@ -16,13 +16,13 @@ const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMe
     return (
 
 
-        <div className="flex-1 overflow-y-auto p-2 mb-3 rounded-md sm:h-[70vh] md:h-[80vh] max-h-[70vh]">
+        <div className="flex-1 overflow-y-auto p-2 mb-3 rounded-md sm:h-[70vh] md:h-[80vh] max-h-[70vh] bg-transparent">
           
 
           {messages.length > 0 ? (
             messages.map((msg, index) => {
               const isOwnMessage = msg.sender._id === userData?.user?._id;
-
+              console.log("asf",msg)
               return (
                 <div
                   key={msg._id || index}
@@ -43,9 +43,9 @@ const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMe
                         }}
                         className="w-10 h-10 rounded-full object-cover border-2 shrink-0"
                       />
-                      <div className={`${msg.isDeleted ? " bg-gray-500 ring-2 ring-gray-200" : "bg-red-300"} p-1.5 rounded-b-xl rounded-tl-none rounded-tr-xl break-words overflow-hidden`}>
+                      <div className={`${msg.isDeleted ? " bg-transparent ring-2 ring-white " : "bg-red-400 text-white"} px-3 py-2 rounded-b-xl rounded-tl-none rounded-tr-xl break-words overflow-hidden`}>
 
-                        <p className={`break-words ${msg.isDeleted ? "italic text-gray-300" : ""}`}>
+                        <p className={`break-words ${msg.isDeleted ? "italic text-white" : ""}`}>
                           {msg.isDeleted ? "This message was deleted" : msg.text}
                         </p>
 
@@ -70,9 +70,9 @@ const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMe
                       )}
 
                       <div
-                        className={`${msg.isDeleted ? "bg-gray-500 ring-2 ring-gray-300" : "bg-blue-600"} p-1.5 rounded-b-xl rounded-tl-none rounded-tr-xl break-words overflow-hidden`}
+                        className={`${msg.isDeleted ? "bg-transparent ring-2 ring-white" : "bg-blue-600"} px-3 py-2 rounded-b-xl rounded-tl-none rounded-tr-xl break-words overflow-hidden`}
                       >
-                        <p className={`break-words ${msg.isDeleted ? "italic text-gray-300" : ""}`}>
+                        <p className={`break-words ${msg.isDeleted ? "italic text-white " : ""}`}>
                           {msg.isDeleted ? "This message was deleted" : msg.text}
                         </p>
                       </div>
@@ -82,7 +82,7 @@ const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMe
               );
             })
           ) : (
-            <p className="text-white/70 text-center mt-5">No messages yet</p>
+            <p className="text-[#6f2db7] text-lg text-center mt-5">No messages yet</p>
           )}
         </div>
 
