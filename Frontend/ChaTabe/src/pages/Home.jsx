@@ -105,16 +105,20 @@ const Home = () => {
   
 
   useEffect(() => {
-    socket.on("deleteMessage", (data) => {
-      if (data.conversationId === conversationId) {
-        setMessages((prev) =>
-          prev.filter((msg) => msg._id !== data.messageId)
-        );
-      }
-    });
+  socket.on("deleteMessage", (data) => {
+    if (data.conversationId === conversationId) {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === data.messageId ? { ...msg, isDeleted: true } : msg
+        )
+      );
+    }
+  });
 
-    return () => socket.off("deleteMessage");
-  }, [conversationId]);
+  return () => socket.off("deleteMessage");
+}, [conversationId]);
+
+
 
   useEffect(() => {
     async function fetchUserData() {
@@ -292,12 +296,18 @@ const Home = () => {
     try {
       await axios.delete(`http://localhost:3000/delete-message/${messageToDelete._id}`, { withCredentials: true });
 
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === messageToDelete._id ? { ...msg, isDeleted: true } : msg
+        )
+    );
+
       socket.emit("deleteMessage", {
         conversationId,
         messageId: messageToDelete._id,
       });
 
-      if (handleSelectUser) await handleSelectUser(selectedUser._id);
+      // if (handleSelectUser) await handleSelectUser(selectedUser._id);
 
     } catch (error) {
       console.error("Delete failed:", error);
@@ -694,6 +704,7 @@ const Home = () => {
                 setShowBlockModal={setShowBlockModal}
                 setShowUnblockModal={setShowUnblockModal}
                 currentUserId={userData?.user?._id}
+                setMessages={setMessages}
               />
             </>
           ) : (

@@ -14,7 +14,7 @@ let typingTimeout = null;
 
 
 //Pass the props
-export const MessageInputComponent = ({senderId, receiverId,senderUsername,receiverUsername, handleSelectUser,conversationId, editingMessage,   setEditingMessage, isBlocked,blockedBy, setShowUnblockModal,currentUserId}) => {
+export const MessageInputComponent = ({senderId, receiverId,senderUsername,receiverUsername, handleSelectUser,conversationId, editingMessage,   setEditingMessage, isBlocked,blockedBy, setShowUnblockModal,currentUserId,setMessages}) => {
   
     const [message,setMessage] = useState('')
     const [inputText, setInputText] = useState('');
@@ -98,17 +98,23 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
             { withCredentials: true }
         );
 
+        setMessages((prev) =>
+                prev.map((msg) =>
+                    msg._id === editingMessage._id ? { ...msg, text: inputText } : msg
+                )
+            );
+
         socket.emit("updateMessage", {
             conversationId,
             messageId: editingMessage._id,
-            text: message,
+            text: inputText,
         });
 
         setEditingMessage(null);
         setInputText("");
 
         
-        if (handleSelectUser) await handleSelectUser(receiverId);
+    
 
         } catch (err) {
         console.error("Error editing message:", err);
