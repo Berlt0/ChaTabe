@@ -183,11 +183,23 @@ const Home = () => {
         contactId
       },{ withCredentials: true})
 
-      alert(response.message)
+      alert(response.data.message)
+
+      setUserData(prev => ({
+          ...prev,
+          user: {
+            ...prev.user,
+            contacts: [...prev.user.contacts, response.data.newContact] 
+          }
+        }));
+
+
+      
 
     } catch (error) {
       if(error.response) {
         alert(error.response.data.message)
+        
         console.log('Something went wrong ', error.response )
       }else{
         alert('Something went wrong')
@@ -581,7 +593,7 @@ const Home = () => {
 
                         <button
                           onClick={() => addContact(user._id)}
-                          className="bg-[#6f2db7] hover:bg-[#5a1e9a] text-white px-6 py-2.5 rounded-xl text-sm font-medium transition-all shadow-md hover:shadow-lg active:scale-95"
+                          className="bg-[#6f2db7] hover:bg-[#5a1e9a] text-white px-6 py-2.5 rounded-xl text-sm cursor-pointer font-medium transition-all shadow-md hover:shadow-lg active:scale-95"
                         >
                           Add
                         </button>

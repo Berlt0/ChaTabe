@@ -55,7 +55,17 @@ export const addContact = async (req, res) => {
     await user.save();
     await contact.save();
 
-    res.status(200).json({ success: true, message: "Contact added successfully" });
+    res.status(200).json({
+        success: true,
+        message: "Contact added successfully",
+        newContact: {
+          _id: contact._id,
+          username: contact.username,
+          profilePic: contact.profilePic,
+          moodStatus: contact.moodStatus
+        }
+    });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Server error" });

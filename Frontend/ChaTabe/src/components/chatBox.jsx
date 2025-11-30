@@ -58,20 +58,20 @@ const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMe
                   ) : (
                     <div className="group flex flex-row gap-2">
   
-                      {!msg.isDeleted && (
-                        <div className="hidden group-hover:flex p-1.5 flex flex-row gap-5 items-center">
-                          <Trash
-                            size={18.5}
-                            className="cursor-pointer text-white"
-                            onClick={() => {openDeleteModal(msg)}}
-                          />
-                          <Pencil
-                            size={18.5}
-                            className="cursor-pointer text-white"
-                            onClick={() => handleEdit(msg)}
-                          />
-                        </div>
-                      )}
+                      {!isBlocked && !msg.isDeleted && (  // INSERTED: Added !isBlocked condition to hide icons when blocked
+                          <div className="hidden group-hover:flex p-1.5 flex flex-row gap-5 items-center">
+                            <Trash
+                              size={18.5}
+                              className="cursor-pointer text-white"
+                              onClick={() => {openDeleteModal(msg)}}
+                            />
+                            <Pencil
+                              size={18.5}
+                              className="cursor-pointer text-white"
+                              onClick={() => handleEdit(msg)}
+                            />
+                          </div>
+                        )}
 
                       <div
                         className={`${msg.isDeleted ? "bg-transparent ring-2 ring-white" : "bg-blue-600"} px-3 py-2 rounded-b-xl rounded-tl-none rounded-tr-xl break-words overflow-hidden`}

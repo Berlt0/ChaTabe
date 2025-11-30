@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { X, Search, MessageCircleOff, LogOut } from "lucide-react";
 
-const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutModal, conversationId,moodColorHandler,setShowBlockModal }) => {
+const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutModal, conversationId,moodColorHandler,setShowBlockModal, isBlocked,isBlockedBy }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -110,8 +110,10 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
                       >
                         <div className="flex items-start gap-3">
                           <div className="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
-                            {msg.sender?.username?.[0]?.toUpperCase() || 'U'}
+                            
+                            <img src={msg.sender?.profilePic} alt={msg.sender?.username} style={{borderColor: moodColorHandler(msg.sender?.moodStatus),borderWidth: 2}} className="w-9 h-9 rounded-full object-cover" />
                           </div>
+                          
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-300">
                               {msg.sender?.username || 'Unknown User'}
@@ -158,11 +160,14 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
                   <span className="font-sm">Search in chat</span>
                 </button>
 
-                <button className='flex items-center gap-4 rounded-lg py-2 px-5 hover:bg-gray-600 transition-all text-white text-left cursor-pointer hover:bg-white hover:text-[#6f2db7] ease-in' onClick={() => setShowBlockModal(true)}>
-
-                  <MessageCircleOff size={20} />
-                  <span className="font-sm">Block Contact</span>
-                </button>
+                <button 
+                      className={`flex items-center gap-4 rounded-lg py-2 px-5 transition-all text-white text-left ${isBlocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white hover:text-[#6f2db7] cursor-pointer ease-in'}`} 
+                      onClick={isBlocked ? undefined : () => setShowBlockModal(true)}
+                      disabled={isBlocked}
+                    >
+                      <MessageCircleOff size={20} />
+                      <span className="font-sm">Block Contact</span>
+                    </button>
 
               </div>
             </div>
