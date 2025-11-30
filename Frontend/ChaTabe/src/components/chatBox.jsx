@@ -21,8 +21,12 @@ const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMe
 
           {messages.length > 0 ? (
             messages.map((msg, index) => {
-              const isOwnMessage = msg.sender._id === userData?.user?._id;
-              console.log("asf",msg)
+              const isOwnMessage =
+                (msg?.sender?._id && msg.sender._id === userData?.user?._id) ||
+                msg.sender === userData?.user?._id;
+
+            
+              
               return (
                 <div
                   key={msg._id || index}
@@ -55,7 +59,7 @@ const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMe
                     <div className="group flex flex-row gap-2">
   
                       {!msg.isDeleted && (
-                        <div className="invisible group-hover:visible p-1.5 flex flex-row gap-5 items-center">
+                        <div className="hidden group-hover:flex p-1.5 flex flex-row gap-5 items-center">
                           <Trash
                             size={18.5}
                             className="cursor-pointer text-white"
