@@ -6,32 +6,77 @@ import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 dotenv.config()
 
+
 export const registerUser = async (req, res) => {
-  try {
-    const { username, password, email ,age,gender } = req.body;
 
+    try {
+
+      const { username, password, email ,age,gender } = req.body;
+
+      
+      if (!username || !password || !email || !age || !gender) {
+        return res.status(400).json({ success: false ,message: 'All fields are required' });
+      }
+
+      
     
-    if (!username || !password || !email || !age || !gender) {
-      return res.status(400).json({ success: false ,message: 'All fields are required' });
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ success: false ,message: ' Email already registered' });
+      }
+
+      const hashedPassword = await bcrypt.hash(password,10);
+
+      let profilePic;
+    if (req.file) {
+      // IMAGE PROVIDED → STORE AS BUFFER
+      profilePic = {
+        data: req.file.buffer,
+        contentType: req.file.mimetype,
+      };
+    } else {
+      // NO IMAGE → USE DEFAULT URL AS STRING IN SEPARATE FIELD
+      profilePic = undefined;
     }
 
-   
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ success: false ,message: ' Email already registered' });
+
+      const newUser = new User({ username, email, password:hashedPassword ,age, gender,profilePic });
+      await newUser.save();
+
+      res.status(201).json({ success: true, message: 'User registered successfully' });
+    
+    } catch (error) {
+
+      console.error(error);
+      res.status(500).json({success:false, message: 'Server error' });
+
     }
 
-    const hashedPassword = await bcrypt.hash(password,10);
-    
-    const newUser = new User({ username, email, password:hashedPassword ,age, gender});
-    await newUser.save();
-
-    res.status(201).json({ success: true, message: 'User registered successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({success:true, message: 'Server error' });
-  }
 };
+
+
+export const getUser = async (req, res) => {
+ const user = await User.findById(req.user.id).lean();
+
+let profilePic;
+
+if (user.profilePic?.data) {
+  // Convert buffer to Base64 string
+  profilePic = `data:${user.profilePic.contentType};base64,${user.profilePic.data.toString("base64")}`;
+} else if (typeof user.profilePic === "string") {
+  // Already a URL string
+  profilePic = user.profilePic;
+} else {
+  // Fallback to default
+  profilePic = user.profilePicURL;
+}
+
+user.profilePic = profilePic;
+
+res.json({ success: true, user });
+}
+
+
 
 
 export const loginUser = async(req,res) => {

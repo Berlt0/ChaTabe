@@ -37,10 +37,10 @@ const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMe
                       : 'mr-auto text-black flex flex-row items-center gap-2 my-2'
                   }`}
                 >
-                  {!isOwnMessage && msg.receiver?.profilePic ? (
+                  {!isOwnMessage && (msg.sender?.profilePic || msg.sender?.profilePicURL) ? (
                     <>
                       <img
-                        src={msg.sender.profilePic}
+                        src={msg.sender.profilePic || msg.sender.profilePicURL}
                         alt={msg.sender.username}
                         style={{
                           borderColor: moodColorHandler(msg.sender.moodStatus),

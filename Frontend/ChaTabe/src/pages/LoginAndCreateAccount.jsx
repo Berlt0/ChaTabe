@@ -25,47 +25,55 @@ const Login = () => {
   const [confirmPassword,setConfirmPassword] = useState("");
   const [age,setAge] = useState(0)
   const [gender,setGender] = useState('')
-  
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [profilePic, setProfilePic] = useState("");
 
-  const handleRegister = async (e) =>{
+  
+const handleRegister = async (e) => {
+
     e.preventDefault();
 
     if (!registerUsername || !registerPassword || !registerEmail || !age || !gender) {
       alert("Please fill all fields");
       return;
-  }
+    }
 
     if (registerPassword !== confirmPassword) {
       alert("Passwords do not match");
       return;
-  }
-
-    try {
-      const response = await axios.post(`http://localhost:3000/register`, {
-        username: registerUsername,
-        email: registerEmail,
-        password: registerPassword,
-        age: Number(age),
-        gender: gender.trim()
-      });
-
-      console.log("Registered Successfully",response.message);
-
-      alert('Registered Successfully')
-      setRegisterUsername('')
-      setRegisterPassword('')
-      setConfirmPassword('')
-      setRegisterEmail('')
-      setGender('')
-      setAge(0)
-
-
-    } catch (error) {
-      console.error('Something went wrong',error);
-      alert(error.response?.data?.message || 'Something went wrong');
     }
 
+    try {
+      const formData = new FormData();
+      formData.append("username", registerUsername);
+      formData.append("email", registerEmail);
+      formData.append("password", registerPassword);
+      formData.append("age", age);
+      formData.append("gender", gender);
+      if (selectedImage) formData.append("image", selectedImage);
+
+      const response = await axios.post(
+        "http://localhost:3000/register",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      alert("Registered Successfully!");
+
+      setRegisterUsername("");
+      setRegisterPassword("");
+      setConfirmPassword("");
+      setRegisterEmail("");
+      setGender("");
+      setAge(0);
+      setSelectedImage(null);
+
+    } catch (error) {
+      console.error("Something went wrong", error);
+      alert(error.response?.data?.message || "Something went wrong");
+    }
   };
+
 
 
   const handleLogin = async(e) =>{
@@ -212,7 +220,14 @@ const Login = () => {
 
                 </div>
 
-             
+                <label className='text-[#6f2db7] mb-1'>Profile Picture:</label>
+
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setSelectedImage(e.target.files[0])}
+                    className='bg-white mb-4 py-1 px-3 cursor-pointer text-[#6f2db7] border-purple-700 border-1 rounded-xl'
+                  />
                 
                 <label className='text-[#6f2db7] mb-1'>Email:</label>
 

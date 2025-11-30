@@ -1,7 +1,16 @@
 import express from 'express'
 import User from '../../model/userModel.js'
 
-
+// ✅ Inserted helper function
+const formatProfilePic = (user) => {
+  if (user?.profilePic?.data) {
+    return `data:${user.profilePic.contentType};base64,${user.profilePic.data.toString("base64")}`;
+  } else if (typeof user?.profilePic === "string") {
+    return user.profilePic;
+  } else {
+    return user?.profilePicURL;
+  }
+};
 
 export const banUser = async (req, res) => {
   try {
@@ -18,7 +27,6 @@ export const banUser = async (req, res) => {
   }
 };
 
-
 export const unbanUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -34,13 +42,18 @@ export const unbanUser = async (req, res) => {
   }
 };
 
-
 export const getBannedUsers = async (req, res) => {
   try {
-    const users = await User.find({ isBanned: true })
-      .select('username email profilePic bannedAt moodStatus')
+    const usersRaw = await User.find({ isBanned: true })
+      .select('username email profilePic profilePicURL bannedAt moodStatus')
       .sort({ bannedAt: -1 })
       .lean();
+
+    // ✅ Inserted transformation step
+    const users = usersRaw.map(user => ({
+      ...user,
+      profilePic: formatProfilePic(user)
+    }));
 
     res.json({ users });
   } catch (error) {

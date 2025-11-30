@@ -270,7 +270,7 @@ const AdminDashboard = () => {
             <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl border border-gray-200 transition-all duration-300">
                 <div className="flex justify-between items-center mb-2">
                   
-                <h3 className="text-lg font-semibold text-gray-700">Active Users Today</h3>
+                <h3 className="text-lg font-semibold text-gray-700">Active Users </h3>
 
                 <div className="p-3 bg-green-100 rounded-full">
                     <Activity size={24} className="text-lime-600" />

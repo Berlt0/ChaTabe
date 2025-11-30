@@ -1,6 +1,18 @@
 
 import User from '../model/userModel.js';
 
+
+const formatProfilePic = (user) => {
+
+  if (user.profilePic?.data) {
+    return `data:${user.profilePic.contentType};base64,${user.profilePic.data.toString("base64")}`;
+  } else if (typeof user.profilePic === "string") {
+    return user.profilePic;
+  } else {
+    return user.profilePicURL;
+  }
+};
+
 export const searchUser = async (req, res) => {
   try {
     const { username } = req.query;
@@ -9,17 +21,26 @@ export const searchUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Username required" });
     }
 
-    
-    const users = await User.find({
+    const usersRaw = await User.find({
       username: { $regex: username, $options: 'i' }, // making it a case-insensitive 
       _id: { $ne: req.userId } // current logged-in user is not included on search
-    }).select('username email profilePic moodStatus'); // select only necessary fields
+    }).select('username email profilePic profilePicURL moodStatus').lean(); // select only necessary fields
+
+  
+    const users = usersRaw.map(user => ({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      moodStatus: user.moodStatus,
+      profilePic: formatProfilePic(user)
+    }));
 
     res.status(200).json({ success: true, users });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 
 export const addContact = async (req, res) => {
@@ -61,7 +82,8 @@ export const addContact = async (req, res) => {
         newContact: {
           _id: contact._id,
           username: contact.username,
-          profilePic: contact.profilePic,
+          profilePicURL: contact.profilePicURL,
+          profilePic: formatProfilePic(contact),
           moodStatus: contact.moodStatus
         }
     });

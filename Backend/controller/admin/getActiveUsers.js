@@ -4,7 +4,7 @@ import Users from '../../model/userModel.js';
 export const getActiveUsers = async (req, res) => {
 
   try { 
-    const activeUsers = await Users.countDocuments({ isActive: true });
+    const activeUsers = await Users.countDocuments({ isActive: true, isAdmin: false });
 
     res.status(200).json({ success: true, message: "Successfully retrieved active users" ,activeUsers });
 

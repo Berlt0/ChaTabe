@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, MessageCircle, Ban } from 'lucide-react';
+import { Search, Eye, MessageCircle, Ban, ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from '../../api/axiosSetup';
 
 const UserPage = ({moodColorHandler}) => {
@@ -120,7 +120,7 @@ const UserPage = ({moodColorHandler}) => {
 
                     <div className="flex items-center gap-4">
 
-                      <img src={user.profilePic} alt={`${user.username} profile picture`} className='w-10 h-10 lg:w-10 lg:h-10 rounded-full object-cover border-2' style={{borderColor: moodColorHandler(user.moodStatus) }}/>
+                      <img src={user.profilePic || user.profilePicURL} alt={`${user.username} profile picture`} className='w-10 h-10 lg:w-10 lg:h-10 rounded-full object-cover border-2' style={{borderColor: moodColorHandler(user.moodStatus) }}/>
 
                       <div>
                         <p className="font-medium text-gray-900">{user.username || 'Unknown'}</p>
@@ -175,9 +175,9 @@ const UserPage = ({moodColorHandler}) => {
             </p>
             <div className="flex gap-3">
               <button onClick={() => setPage(page - 1)} disabled={page === 1}
-                className="px-5 py-2 rounded-xl border disabled:opacity-50">Previous</button>
+                className="px-5 py-2 rounded-xl border disabled:opacity-50"><ChevronLeft size={16} /> Prev</button>
               <button onClick={() => setPage(page + 1)} disabled={page === pagination.pages}
-                className="px-5 py-2 rounded-xl border disabled:opacity-50">Next</button>
+                className="px-5 py-2 rounded-xl border disabled:opacity-50">Next <ChevronRight size={16} /></button>
             </div>
           </div>
         )}

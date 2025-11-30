@@ -3,7 +3,16 @@ import Users from "../model/userModel.js"
 import Messages from "../model/messageModel.js"
 
 
-// This function handles sending message
+const formatProfilePic = (user) => {
+  if (user?.profilePic?.data) {
+    return `data:${user.profilePic.contentType};base64,${user.profilePic.data.toString("base64")}`;
+  } else if (typeof user?.profilePic === "string") {
+    return user.profilePic;
+  } else {
+    return user?.profilePicURL;
+  }
+};
+
 
 export const sendMessage = async (req,res) => {
 
@@ -53,43 +62,58 @@ export const sendMessage = async (req,res) => {
 //This function handles getting or fetching all messages
 
 export const getMessages = async (req,res) => {
-    
-    try {
-        
-        const {conversationId, senderId,receiverId} = req.body;
+  try {
+    const {conversationId, senderId,receiverId} = req.body;
 
-        if(!senderId || !receiverId) return res.status(400).json({ success: false, message: "senderId and receiverId are required" });
-
-      
-        let convoId = conversationId;
-
-        if (!convoId) {
-        const existingConvo = await Conversations.findOne({
-            members: { $all: [senderId, receiverId] }
-        });
-
-        
-
-        if (!existingConvo) {
-            return res.status(404).json({ success: false, message: "Conversation not found" });
-        }
-
-        convoId = existingConvo._id;
-        }
-
-        const messages = await Messages.find({conversationId})
-        .populate("sender", "username moodStatus profilePic")
-        .populate("receiver", "username moodStatus profilePic")
-        .sort({createdAt: 1})
-
-        res.status(200).json(messages)
-
-    } catch (error) {
-        console.log('Error fetching messages', error)
-        res.status(500).json({success:false, message: "Something went wrong"})
+    if(!senderId || !receiverId) {
+      return res.status(400).json({ success: false, message: "senderId and receiverId are required" });
     }
 
-}
+    let convoId = conversationId;
+
+    if (!convoId) {
+      const existingConvo = await Conversations.findOne({
+        members: { $all: [senderId, receiverId] }
+      }).lean();
+
+      if (!existingConvo) {
+        return res.status(404).json({ success: false, message: "Conversation not found" });
+      }
+
+      convoId = existingConvo._id;
+    }
+
+    // ✅ Use the resolved convoId
+    const messages = await Messages.find({ conversationId: convoId })
+      .populate("sender", "username moodStatus profilePic profilePicURL")
+      .populate("receiver", "username moodStatus profilePic profilePicURL")
+      .sort({ createdAt: 1 })
+      .lean();
+
+    const formattedMessages = messages.map((msg) => {
+      const sender = msg.sender ? {
+        ...msg.sender,
+        profilePic: formatProfilePic(msg.sender)
+      } : null;
+
+      const receiver = msg.receiver ? {
+        ...msg.receiver,
+        profilePic: formatProfilePic(msg.receiver)
+      } : null;
+
+      return {
+        ...msg,
+        sender,
+        receiver
+      };
+    });
+
+    res.status(200).json(formattedMessages);
+  } catch (error) {
+    console.log('Error fetching messages', error);
+    res.status(500).json({success:false, message: "Something went wrong"});
+  }
+};
 
 
 export const editMessage = async (req, res) => {
@@ -178,23 +202,24 @@ export const getUserConversations = async (req, res) => {
 
     const conversations = await Conversations.find({
       members: { $in: [userId] },
-    }).populate("members", "username profilePic moodStatus");
+    })
+      .populate("members", "username profilePic profilePicURL moodStatus")
+      .lean();
 
-    // Map conversations to extract senderId and receiverId
     const formattedConversations = conversations.map((conv) => {
       const senderId = userId;
-      const receiver = conv.members.find((member) => member._id.toString() !== userId);
+      const receiver = conv.members.find((member) => member._id.toString() !== userId) || null;
       const receiverId = receiver ? receiver._id : null;
-      const isBlocked = conv.isBlocked;
-      const blockedBy = conv.blockedBy;
 
       return {
         conversationId: conv._id,
         senderId,
         receiverId,
-        receiverInfo: receiver, 
-        isBlocked,
-        blockedBy
+        receiverInfo: receiver
+          ? { ...receiver, profilePic: formatProfilePic(receiver) }
+          : null,
+        isBlocked: conv.isBlocked,
+        blockedBy: conv.blockedBy
       };
     });
 

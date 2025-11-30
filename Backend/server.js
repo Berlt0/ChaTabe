@@ -77,6 +77,7 @@ io.on("connection", (socket) => {
 });
 
 
+app.use("/uploads", express.static("uploads"));
 
 app.use('/',userRoute);
 app.use('/admin', adminRoute);  

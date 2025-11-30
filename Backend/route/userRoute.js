@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser,loginUser ,logoutUser,refreshAccessToken} from '../controller/userController.js';
+import { registerUser,loginUser ,logoutUser,refreshAccessToken,getUser} from '../controller/userController.js';
 import { verifyToken } from '../middleware/authMiddleware.js';
 import { addContact, searchUser } from '../controller/searchUser.js';
 import { getUserData } from '../controller/userData.js';
@@ -9,10 +9,13 @@ import { getMessages, sendMessage, getUserConversations ,editMessage, deleteMess
 import { blockContact } from '../controller/blockUser.js';
 import { updateMood } from '../controller/updateMood.js';
 
+import upload from "../middleware/upload.js";
+
 const router = express.Router();
 
 
-router.post('/register', registerUser);
+router.post('/register', upload.single("image"),registerUser);
+router.get('/users/:id/profilePic', getUser);
 router.post('/login',loginUser)
 router.post('/logout', verifyToken,logoutUser);
 router.get('/search', verifyToken, searchUser)

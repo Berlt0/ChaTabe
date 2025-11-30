@@ -6,6 +6,17 @@ const escapeRegExp = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 
+// ✅ INSERTED: Helper to format profilePic
+const formatProfilePic = (user) => {
+  if (user?.profilePic?.data) {
+    return `data:${user.profilePic.contentType};base64,${user.profilePic.data.toString("base64")}`;
+  } else if (typeof user?.profilePic === "string") {
+    return user.profilePic;
+  } else {
+    return user?.profilePicURL;
+  }
+};
+
 export const getAllMessages = async (req, res) => {
   try {
     const { search, page = 1, limit = 10 } = req.query;
@@ -13,7 +24,6 @@ export const getAllMessages = async (req, res) => {
 
     let query = { isDeleted: false }; 
 
-   
     if (search && search.trim() !== "") {
       const safeSearch = escapeRegExp(search.trim()); 
 
@@ -23,13 +33,22 @@ export const getAllMessages = async (req, res) => {
       ];
     }
 
-    const messages = await Messages.find(query)
-      .populate("sender", "username profilePic moodStatus isBanned")
+    const messagesRaw = await Messages.find(query)
+      .populate("sender", "username profilePic profilePicURL moodStatus isBanned")
       .populate("receiver", "username")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit))
       .lean(); 
+
+   
+    const messages = messagesRaw.map(msg => ({
+      ...msg,
+      sender: {
+        ...msg.sender,
+        profilePic: formatProfilePic(msg.sender)
+      }
+    }));
 
     const total = await Messages.countDocuments(query);
 

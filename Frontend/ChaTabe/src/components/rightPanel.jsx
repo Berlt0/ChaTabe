@@ -111,7 +111,7 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
                         <div className="flex items-start gap-3">
                           <div className="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
                             
-                            <img src={msg.sender?.profilePic} alt={msg.sender?.username} style={{borderColor: moodColorHandler(msg.sender?.moodStatus),borderWidth: 2}} className="w-9 h-9 rounded-full object-cover" />
+                            <img src={msg.sender?.profilePic || msg.sender?.profilePicURL} alt={msg.sender?.username} style={{borderColor: moodColorHandler(msg.sender?.moodStatus),borderWidth: 2}} className="w-9 h-9 rounded-full object-cover" />
                           </div>
                           
                           <div className="flex-1 min-w-0">
@@ -126,7 +126,8 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
                                 hour: '2-digit',
                                 minute: '2-digit',
                                 month: 'short',
-                                day: 'numeric'
+                                day: 'numeric',
+                                year: 'numeric'
                               })}
                             </p>
                           </div>
@@ -144,7 +145,7 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
               <div className='flex flex-col items-center gap-4'>
 
                 <img
-                  src={selectedUser.profilePic}
+                  src={selectedUser.profilePic || selectedUser.profilePicURL}
                   alt={selectedUser.username}
                   style={{borderColor:moodColorHandler(selectedUser.moodStatus)}}
                   className='w-20 h-20 rounded-full object-cover border-4 '/>

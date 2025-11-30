@@ -31,7 +31,7 @@ export const searchMessage = async (req,res) => {
         })
         .sort({ createdAt: -1 })
         .select('text createdAt senderId')
-        .populate('sender', 'username profilePic moodStatus');
+        .populate('sender', 'username profilePic profilePicURL moodStatus');
 
 
         res.status(200).json({success:true, message: "Messages fetched successfully", results: messages});

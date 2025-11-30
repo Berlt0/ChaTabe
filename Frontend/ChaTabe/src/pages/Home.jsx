@@ -194,7 +194,7 @@ const Home = () => {
         }));
 
 
-      
+      setQuery("");
 
     } catch (error) {
       if(error.response) {
@@ -580,14 +580,14 @@ const Home = () => {
                       >
                         <div className="flex items-center gap-4">
                           <img
-                            src={user.profilePic || "/default-avatar.png"}
+                            src={user.profilePic || user.profilePicURL}
                             alt={user.username}
                             className="w-12 h-12 rounded-full object-cover border-2 shadow-md"
                             style={{ borderColor: moodColorHandler(user.moodStatus) }}
                           />
                           <div>
                             <p className="font-semibold text-gray-800">{user.username}</p>
-                            <p className="text-xs text-gray-500">Click Add to </p>
+                            <p className="text-xs text-gray-500">Click Add to add contact </p>
                           </div>
                         </div>
 
@@ -620,7 +620,7 @@ const Home = () => {
             onClick={() => setShowProfileModal(true)}
           >
             <img
-              src={userData.user.profilePic}
+              src={userData.user.profilePic || userData.user.profilePicURL}
               style={{borderColor: moodColorHandler(userData.user.moodStatus)}}
               alt="User Profile Picture"
               className="w-full h-full rounded-full border-2 border-[#6f2db7] object-cover"
@@ -647,7 +647,7 @@ const Home = () => {
                     onClick={() => handleSelectUser(user._id)}
                   >
                     <img
-                      src={user.profilePic}
+                      src={user.profilePic || user.profilePicURL}
                       alt={user.username}
                       style={{ borderColor: moodColorHandler(user.moodStatus) }}
                       className="w-10 h-10 lg:w-10 lg:h-10 rounded-full object-cover border-2"
@@ -675,7 +675,7 @@ const Home = () => {
             <>
               <div className="flex flex-row gap-2 p-3">
                 <img
-                  src={selectedUser.profilePic}
+                  src={selectedUser.profilePic || selectedUser.profilePicURL}
                   alt={selectedUser.username}
                   style={{ borderColor: moodColorHandler(selectedUser.moodStatus) }}
                   className="w-14 h-14 rounded-full object-cover border-2"

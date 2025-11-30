@@ -25,10 +25,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    profilePic:{
+    profilePic: {
+        data: Buffer,
+        contentType: String,
+        
+    },
+    profilePicURL: {
         type: String,
-        required: false
-    
+        default: "https://sggs.ac.in/assets/back/assets/img/avatars/1.png",
+       
     },moodStatus:{
         type: String,
         required: true,

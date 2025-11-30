@@ -142,7 +142,8 @@ const MessagePanel = ({moodColorHandler}) => {
                               To: {msg.receiver?.username || "Unknown"}
                             </span>
                             <Clock size={14} />
-                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            {new Date(msg.createdAt).toLocaleString([], { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+
                           </p>
                         </div>
                       </div>
@@ -177,7 +178,7 @@ const MessagePanel = ({moodColorHandler}) => {
                   <button
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="px-4 py-2 rounded-xl border disabled:opacity-50 hover:bg-gray-100 flex items-center gap-1"
+                    className="px-4 py-2 rounded-xl border cursor-pointer disabled:opacity-50 hover:bg-gray-100 flex items-center gap-1"
                   >
                     <ChevronLeft size={16} /> Prev
                   </button>
@@ -185,7 +186,7 @@ const MessagePanel = ({moodColorHandler}) => {
                   <button
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    className="px-4 py-2 rounded-xl border disabled:opacity-50 hover:bg-gray-100 flex items-center gap-1"
+                    className="px-4 py-2 rounded-xl border cursor-pointer disabled:opacity-50 hover:bg-gray-100 flex items-center gap-1"
                   >
                     Next <ChevronRight size={16} />
                   </button>
