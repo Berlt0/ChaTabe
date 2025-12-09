@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser,loginUser ,logoutUser,refreshAccessToken,getUser} from '../controller/userController.js';
+import { registerUser,loginUser ,logoutUser,refreshAccessToken,getUser,verifyOTP, resendOTP} from '../controller/userController.js';
 import { verifyToken } from '../middleware/authMiddleware.js';
 import { addContact, searchUser } from '../controller/searchUser.js';
 import { getUserData } from '../controller/userData.js';
@@ -8,6 +8,7 @@ import { searchMessage } from '../controller/searchMessage.js';
 import { getMessages, sendMessage, getUserConversations ,editMessage, deleteMessage } from '../controller/chatController.js';
 import { blockContact } from '../controller/blockUser.js';
 import { updateMood } from '../controller/updateMood.js';
+
 
 import upload from "../middleware/upload.js";
 
@@ -34,6 +35,8 @@ router.delete('/delete-message/:id', verifyToken,deleteMessage)
 router.post('/search-message', verifyToken, searchMessage);
 router.post('/block-contact', verifyToken, blockContact);
 router.post('/update-mood', verifyToken, updateMood);
+router.post("/verify-otp", verifyOTP);
+router.post("/resend-otp", resendOTP);
 
 
 

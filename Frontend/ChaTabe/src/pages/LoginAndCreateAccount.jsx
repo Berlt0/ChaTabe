@@ -66,9 +66,8 @@ const handleRegister = async (e) => {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
-      alert("Registered Successfully!");
-      
-      navigate('/')
+      alert("Account created. Please check your email for OTP.");
+      navigate(`/verify-otp?email=${response.data.email}`);
 
       setRegisterUsername("");
       setRegisterPassword("");
