@@ -1,24 +1,41 @@
-import { useState,useEffect } from "react";
+import { useState,useEffect,useRef } from "react";
 import { Search, MessageSquareText, Smile, ThumbsUp,MessageCircleOff,LogOut,X ,SendHorizontal } from "lucide-react";
 import axios from "axios";
 import { io } from "socket.io-client";
 
 
 
-// Initialize socket
-const socket = io("http://localhost:3000", {
-    withCredentials: true
-});
+
+// // Initialize socket
+// const socket = io("http://localhost:3000", {
+//     withCredentials: true
+// });
 
 let typingTimeout = null;
 
 
 //Pass the props
-export const MessageInputComponent = ({senderId, receiverId,senderUsername,receiverUsername, handleSelectUser,conversationId, editingMessage,   setEditingMessage, isBlocked,blockedBy, setShowUnblockModal,currentUserId,setMessages}) => {
+export const MessageInputComponent = ({senderId, receiverId,senderUsername,receiverUsername, handleSelectUser,conversationId, editingMessage,   setEditingMessage, isBlocked,blockedBy, setShowUnblockModal,currentUserId,setMessages,loading,setLoading}) => {
   
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'; // Fallback for safety
+
+  // Initialize socket inside component with dynamic URL
+  const socket = useRef(null);
+  useEffect(() => {
+    socket.current = io(API_URL, {
+      withCredentials: true
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (socket.current) socket.current.disconnect();
+    };
+  }, [API_URL]);
+    
     const [message,setMessage] = useState('')
     const [inputText, setInputText] = useState('');
     const [isClose,setIsClose] = useState(true)
+    const [sendLoading ,setSendLoading] = useState(false)
 
     
     const isMeWhoBlocked = isBlocked && blockedBy === currentUserId;
@@ -39,17 +56,20 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
 
 
         try {
+            setSendLoading(true)
 
             if(!inputText.trim()) return
+
+            if (conversationId) {
+                socket.current.emit("joinRoom", conversationId);  
+            }
 
             if(!senderId || !receiverId){
                 console.log('Missing sender or receiver ID')
                 return
             }
 
-        
-            
-            const response = await axios.post('http://localhost:3000/send-message',{
+            const response = await axios.post('/send-message',{
                 
                 senderId: senderId,
                 receiverId: receiverId,
@@ -61,13 +81,30 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
 
               const savedMessage = response.data;
 
-                // SEND REAL-TIME MESSAGE OVER SOCKET.IO
-                socket.emit("sendMessage", {
-                    conversationId: savedMessage.conversationId,
-                    message: savedMessage
-                });
+                
+              const convId = savedMessage.conversationId ? String(savedMessage.conversationId) : conversationId;
 
-                 socket.emit("stopTyping", { conversationId, senderId });
+              // Append immediately so the sender sees the message right away
+              if (typeof setMessages === 'function') {
+                setMessages(prev => {
+                  if (prev.some(m => m._id === savedMessage._id)) return prev;
+                  return [...prev, savedMessage];
+                });
+              }
+              
+              // Ensure sender is in the room (helps with race)
+              if (convId) {
+                socket.current.emit("joinRoom", convId);
+              }
+              
+              // Broadcast to other participants
+              socket.current.emit("sendMessage", {
+                conversationId: convId,
+                message: savedMessage
+              });
+              
+              // stop typing
+              socket.current.emit("stopTyping", { conversationId: convId, senderId });
 
             console.log('Message sent successfully')
 
@@ -81,6 +118,8 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
             
             console.log('Error sending data',error)
 
+        }finally{
+            setSendLoading(false)
         }
 
     }
@@ -93,7 +132,7 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
 
         try {
         const response = await axios.put(
-            `http://localhost:3000/edit-message/${editingMessage._id}`,
+            `/edit-message/${editingMessage._id}`,
             { text: inputText },
             { withCredentials: true }
         );
@@ -104,7 +143,7 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
                 )
             );
 
-        socket.emit("updateMessage", {
+        socket.current.emit("updateMessage", {
             conversationId,
             messageId: editingMessage._id,
             text: inputText,
@@ -142,11 +181,11 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
     const handleTyping = (e) => {
         setInputText(e.target.value);
 
-        socket.emit("typing", { conversationId, senderId });
+        socket.current.emit("typing", { conversationId, senderId });
 
         if (typingTimeout) clearTimeout(typingTimeout);
         typingTimeout = setTimeout(() => {
-        socket.emit("stopTyping", { conversationId, senderId });
+        socket.current.emit("stopTyping", { conversationId, senderId });
         }, 1200);
   };
 
@@ -158,6 +197,17 @@ export const MessageInputComponent = ({senderId, receiverId,senderUsername,recei
      {isBlocked ? (
 
         <div className="flex flex-col items-center py-4 bg-red-700 px-5 gap-2 rounded-lg">
+
+
+            {sendLoading && (
+                <div className="w-full flex justify-center py-2">
+                    <div className="flex space-x-2">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-150"></div>
+                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-300"></div>
+                    </div>
+                </div>
+            )}
 
             {isMeWhoBlocked ? (
 

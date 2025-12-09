@@ -83,7 +83,6 @@ export const getMessages = async (req,res) => {
       convoId = existingConvo._id;
     }
 
-    // ✅ Use the resolved convoId
     const messages = await Messages.find({ conversationId: convoId })
       .populate("sender", "username moodStatus profilePic profilePicURL")
       .populate("receiver", "username moodStatus profilePic profilePicURL")

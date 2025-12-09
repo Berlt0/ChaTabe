@@ -20,10 +20,33 @@ app.use(bodyParser.json())
 app.use(express.json())
 app.use(cookieParser())
 
-app.use(cors({
-  origin: 'http://localhost:5173', 
-  credentials: true            
-}));
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://cha-tabe-frontend-59wa.vercel.app",
+];
+
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+  }
+
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  );
+
+  if (req.method === "OPTIONS") return res.sendStatus(200); // respond to preflight immediately
+  next();
+});
 
 
 const PORT = process.env.PORT || 3000;
@@ -35,7 +58,7 @@ const server = http.createServer(app)
 
 const io = new Server(server, {
   cors:{
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173',"https://cha-tabe-frontend-59wa.vercel.app"],
     methods: ['GET','POST','PUT','PATCH','DELETE'],
     credentials: true
 
@@ -53,12 +76,18 @@ io.on("connection", (socket) => {
   });
 
   // receive message from frontend
-  socket.on("sendMessage", (data) => {
-    const { conversationId, message } = data;
+ // receive message from frontend
+socket.on("sendMessage", (data) => {
+  const { conversationId, message } = data;
+  const convId = String(conversationId);
 
-    // send message to all users in the same room EXCEPT sender
-    socket.to(conversationId).emit("receiveMessage", message);
-  });
+  // emit to room (everyone who joined)
+  io.to(convId).emit("receiveMessage", message);
+
+  // also emit directly to the sender socket to guarantee they get it
+  // (covers the case where sender hasn't joined room yet due to race)
+  socket.emit("receiveMessage", message);
+});
 
 
    socket.on("typing", ({ conversationId, senderId }) => {

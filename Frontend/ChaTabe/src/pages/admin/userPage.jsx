@@ -10,10 +10,12 @@ const UserPage = ({moodColorHandler}) => {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({});
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:3000/admin/users", {
+      const res = await axios.get("/admin/users", {
         params: {
           page,
           limit: 20,
@@ -36,7 +38,7 @@ const UserPage = ({moodColorHandler}) => {
 
     try {
     
-      const response = await axios.post(`http://localhost:3000/admin/ban/${userId}`, { isBanned: true, });
+      const response = await axios.post(`/admin/ban/${userId}`, { isBanned: true, });
       
       if (response.data.success) {
 

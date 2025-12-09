@@ -1,9 +1,32 @@
-
+import { useEffect,useRef } from 'react';
 import {Trash,Pencil} from 'lucide-react'
+import { io } from 'socket.io-client';
 
-const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMessage, handleSelectUser,conversationId,isBlocked,isBlockedBy,openDeleteModal}) => {
 
+
+const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMessage, handleSelectUser,conversationId,isBlocked,isBlockedBy,openDeleteModal,loadingMessages}) => {
+
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'; // Fallback for safety
+
+  // Initialize socket inside component with dynamic URL
+  const socket = useRef(null);
+  useEffect(() => {
+    socket.current = io(API_URL, {
+      withCredentials: true
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (socket.current) socket.current.disconnect();
+    };
+  }, [API_URL]);
   
+  useEffect(() => {
+    if (!conversationId) return;
+  
+    socket.current.emit("joinRoom", conversationId);
+  
+  }, [conversationId]);
   
 
     
@@ -18,8 +41,17 @@ const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMe
 
         <div className="flex-1 overflow-y-auto p-2 mb-3 rounded-md sm:h-[70vh] md:h-[80vh] max-h-[70vh] bg-transparent">
           
+          {loadingMessages ? (
 
-          {messages.length > 0 ? (
+            
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-4 border-[#6f2db7] border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-[#6f2db7] font-semibold">Loading messages...</p>
+              </div>
+            
+
+            ) : messages.length > 0 ? (
+
             messages.map((msg, index) => {
               const isOwnMessage =
                 (msg?.sender?._id && msg.sender._id === userData?.user?._id) ||
@@ -28,6 +60,8 @@ const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMe
             
               
               return (
+                <>
+
                 <div
                   key={msg._id || index}
                   ref={index === messages.length - 1 ? messagesEndRef : null}
@@ -83,15 +117,16 @@ const ChatBox = ({messages,messagesEndRef,userData,moodColorHandler,setEditingMe
                     </div>
                   )}
                 </div>
-              );
+              </>);
             })
           ) : (
             <p className="text-[#6f2db7] text-lg text-center mt-5">No messages yet</p>
-          )}
+          )
+      }
         </div>
 
 
-
+  
   )
 }
 

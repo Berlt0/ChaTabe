@@ -3,7 +3,10 @@ import React, { useState, useEffect } from "react";
 import axios from "../../api/axiosSetup";
 import { Search, Trash2, Ban, AlertCircle, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 
+
 const MessagePanel = ({moodColorHandler}) => {
+
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   axios.defaults.withCredentials = true;
 
@@ -17,7 +20,7 @@ const MessagePanel = ({moodColorHandler}) => {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:3000/admin/messages", {
+      const res = await axios.get("/admin/messages", {
         params: {
           search: search.trim() === "" ? undefined : search.trim(),
           limit,
@@ -53,7 +56,7 @@ const MessagePanel = ({moodColorHandler}) => {
 
     try {
     
-      const response = await axios.post(`http://localhost:3000/admin/ban/${userId}`, { isBanned: true, });
+      const response = await axios.post(`/admin/ban/${userId}`, { isBanned: true, });
       
       if (response.data.success) {
 

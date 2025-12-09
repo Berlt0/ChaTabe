@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'
+import { LogIn,LogOut,Send,UserPlus } from 'lucide-react';
+
 
 //Include tokens every req
 
@@ -28,10 +30,16 @@ const Login = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [profilePic, setProfilePic] = useState("");
 
+  const [loading,setLoading] = useState(false)
+
   
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'; // Fallback for safety
+
+
 const handleRegister = async (e) => {
 
     e.preventDefault();
+    setLoading(true)
 
     if (!registerUsername || !registerPassword || !registerEmail || !age || !gender) {
       alert("Please fill all fields");
@@ -53,12 +61,14 @@ const handleRegister = async (e) => {
       if (selectedImage) formData.append("image", selectedImage);
 
       const response = await axios.post(
-        "http://localhost:3000/register",
+        "/register",
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
       alert("Registered Successfully!");
+      
+      navigate('/')
 
       setRegisterUsername("");
       setRegisterPassword("");
@@ -68,9 +78,12 @@ const handleRegister = async (e) => {
       setAge(0);
       setSelectedImage(null);
 
+
     } catch (error) {
       console.error("Something went wrong", error);
       alert(error.response?.data?.message || "Something went wrong");
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -78,6 +91,7 @@ const handleRegister = async (e) => {
 
   const handleLogin = async(e) =>{
     e.preventDefault()
+    setLoading(true)
 
     try {
 
@@ -86,7 +100,7 @@ const handleRegister = async (e) => {
         return
       }
 
-      const response = await axios.post(`http://localhost:3000/login`,{
+      const response = await axios.post(`/login`,{
         username:loginUsername,
         password:loginPassword
       });
@@ -112,6 +126,8 @@ const handleRegister = async (e) => {
       console.log('Something went wrong',error);
       alert('Invalid credentials')
       
+    }finally{
+      setLoading(false)
     }
 
   }
@@ -119,15 +135,29 @@ const handleRegister = async (e) => {
   return (
     <>
 
-    <div className='h-screen bg-gradient-to-b from-white via-[#e4e4eb] to-[#2d00c2] flex items-center justify-center w-screen rounded-xl '>
 
-      {
-      (isLoginPage)?(
-        <>
+    <div className='h-screen bg-gradient-to-b from-white via-[#e4e4eb] to-[#2d00c2] flex items-center justify-center w-screen rounded-xl '>
+      
+    {
+      isLoginPage? (
+        
+
+        loading ? (
+
+          <div className="fixed inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-[#6f2db7] border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-[#6f2db7] font-semibold">Loading...</p>
+          </div>
+          </div>
+
+        ):(
+
+        
 
         <div className='bg-transparent mx-auto  p-6 w-8/12 sm:w-2/4 md:w-1/3 lg:w-2/6 xl:w-2/6 2xl:w-[20%]  shadow-2xl'>
             <h1 className='text-4xl font-bold text-center text-[#6f2db7] mb-3 2xl:text-3xl'>Login</h1>
-            <p className='text-center text-[#6f2db7] text-sm mb-3 2xl:text-base 2xl:mb-4'>Don't have an account? <span className='text-yellow-500 cursor-pointer underline' onClick={() => setIsLoginPage(false)}>Create Account</span></p>
+            {/* <p className='text-center text-[#6f2db7] text-sm mb-3 2xl:text-base 2xl:mb-4'>Don't have an account? <span className='text-yellow-500 cursor-pointer underline' onClick={() => setIsLoginPage(false)}>Create Account</span></p> */}
 
             <form className='flex flex-col'>
 
@@ -145,22 +175,36 @@ const handleRegister = async (e) => {
                 <input type="password" 
                 name="login-password" 
                 value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
+                onChange={(e) => setLoginPassword(e.target.value)}  
                 placeholder='Enter your Password' 
                 className='bg-transparent px-3 py-3 border-purple-700 border-1  transition-all ease-in outline-none rounded-xl text-black mb-4 2xl:py-3 2xl:mb-5 2xl:text-sm'/>
 
-                <button className='py-1.5 rounded-lg hover:rounded-3xl text-white bg-[#6f2db7] cursor-pointer 2xl:py-2 transition-all ease-in' onClick={handleLogin}>Login</button>
+                <button className='py-1.5 rounded-lg hover:rounded-3xl font-semibold text-white bg-[#6f2db7] cursor-pointer 2xl:py-2 transition-all ease-in flex justify-center items-center gap-1' onClick={handleLogin}><LogIn size={20}/>Login</button>
 
+                <div className='w-full  mt-4 mb-3 border-b-1 border-purple-700'></div>
+                <p className='text-purple-700 mb-2.5 text-center font-semibold'>Don't have an account?</p>
+                <button className='py-1.5 rounded-lg hover:rounded-3xl text-[#6f2db7] bg-white font-semibold cursor-pointer 2xl:py-2 transition-all ease-in gap-1 flex items-center justify-center' onClick={() => setIsLoginPage(false)}><UserPlus size={20}/>Create Account</button>
             </form>
             
         </div>
-        </>
+        )
+        
       ):(
+
+        loading ? (
+
+          <div className="fixed inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-[#6f2db7] border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-[#6f2db7] font-semibold">Loading...</p>
+          </div>
+          </div>
+
+        ):(
 
          <div className='bg-transparent mx-auto  p-6 w-8/12 sm:w-2/4 md:w-1/3 lg:w-2/6 xl:w-2/6 2xl:w-[20%]  shadow-2xl shadow-2xl shadow-gray-700 rounded-xl'>
 
-            <h1 className='text-4xl font-bold text-center text-[#6f2db7] mb-3 2xl:text-3xl'>Create Account</h1>
-            <p className='text-center text-[#6f2db7] text-sm mb-3 2xl:text-base 2xl:mb-4'>Already have an account? <span className='text-yellow-500 cursor-pointer underline' onClick={() => setIsLoginPage(true)}>Login in here</span></p>
+            <h1 className='text-4xl font-bold text-center text-[#6f2db7] mb-5 2xl:text-3xl'>Create Account</h1>
 
             <form className='flex flex-col'>
 
@@ -257,20 +301,27 @@ const handleRegister = async (e) => {
                 placeholder='Confirm your password' 
                 className='bg-transparent border-1 border-purple-700  px-3 py-2.5 outline-none rounded-xl text-black mb-4 placeholder-[#6f2db7]'/>
 
-                <button className='py-2 rounded-lg hover:rounded-3xl transition-all ease-in text-white cursor-pointer bg-[#6f2db7] mb-2' onClick={handleRegister}>Submit</button>
+                <button className='py-2 rounded-lg hover:rounded-3xl transition-all font-semibold ease-in text-white cursor-pointer bg-[#6f2db7] mb-2 gap-1 flex items-center justify-center' onClick={handleRegister}><Send size={20}/>Submit</button>
+
+                <div className='w-full  mt-4 mb-3 border-b-1 border-white'></div>
+                <p className='text-white mb-2.5 text-center font-semibold'>Already have an account?</p>
+
+                <button className='py-1.5 rounded-lg hover:rounded-3xl text-[#6f2db7] font-semibold  bg-white cursor-pointer 2xl:py-2 transition-all ease-in flex justify-center items-center gap-1' onClick={() => setIsLoginPage(true)}><LogIn size={20}/>Login</button>
 
             </form>
             
         
 
         </div>
-
       )
+        
+    )
 
     }
  
 
     </div>
+    
     </>
   )
 }

@@ -1,7 +1,8 @@
 import axios from "axios";
 
+
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = "http://localhost:3000";
+axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 
 // GLOBAL INTERCEPTOR (runs on every response error)
 // axios.interceptors.response.use(

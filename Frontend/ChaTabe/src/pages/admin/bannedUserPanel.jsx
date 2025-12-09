@@ -3,16 +3,19 @@ import React, { useState, useEffect } from "react";
 import axios from "../../api/axiosSetup";
 import { Search, RotateCcw, UserX, AlertCircle } from "lucide-react";
 
+
 const BannedUsersPanel = ({moodColorHandler}) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
   const fetchBannedUsers = async () => {
 
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:3000/admin/banned-users");
+      const res = await axios.get("/admin/banned-users");
       setUsers(res.data.users);
     } catch (err) {
       console.error(err);
@@ -33,7 +36,7 @@ const BannedUsersPanel = ({moodColorHandler}) => {
 
     try {
 
-      await axios.post(`http://localhost:3000/admin/unban/${userId}`);
+      await axios.post(`/admin/unban/${userId}`);
       setUsers(prev => prev.filter(u => u._id !== userId));
       alert("User unbanned");
     

@@ -15,7 +15,7 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
 
     setIsLoading(true);
     try {
-      const response = await axios.post('http://localhost:3000/search-message', {
+      const response = await axios.post('/search-message', {
         message: searchQuery.trim(),
         conversationId
       }, { withCredentials: true });
@@ -51,6 +51,33 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
     };
 
 
+    
+    const getProfileImageSrc = (user) => {
+      if (!user) return "https://sggs.ac.in/assets/back/assets/img/avatars/1.png";
+      
+      // Prioritize binary profilePic if present
+      const profilePic = user.profilePic;
+      if (profilePic && profilePic.data && profilePic.data.data && profilePic.contentType) {
+        try {
+          const binaryString = new Uint8Array(profilePic.data.data).reduce(
+            (data, byte) => data + String.fromCharCode(byte),
+            ''
+          );
+          const base64String = btoa(binaryString);
+          return `data:${profilePic.contentType};base64,${base64String}`;
+        } catch (e) {
+          console.error("Base64 conversion failed:", e);
+        }
+      }
+      
+      // Fallback to profilePicURL if it's a valid string
+      if (typeof user.profilePicURL === 'string' && user.profilePicURL.trim() !== '') {
+        return user.profilePicURL;
+      }
+      
+      // Final fallback
+      return "https://sggs.ac.in/assets/back/assets/img/avatars/1.png";
+    };
     
   return (
     <>
@@ -99,7 +126,8 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {searchResults.map((msg) => (
+                    {searchResults.map((msg) =>  { console.log(msg)
+                     return (
                       <div
                         key={msg._id}
                         className="bg-gray-800/50 backdrop-blur rounded-lg p-4 hover:bg-gray-750 transition cursor-pointer border border-gray-700"
@@ -111,7 +139,7 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
                         <div className="flex items-start gap-3">
                           <div className="w-9 h-9 rounded-full bg-purple-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
                             
-                            <img src={msg.sender?.profilePic || msg.sender?.profilePicURL} alt={msg.sender?.username} style={{borderColor: moodColorHandler(msg.sender?.moodStatus),borderWidth: 2}} className="w-9 h-9 rounded-full object-cover" />
+                            <img src={getProfileImageSrc(msg.sender)} alt={msg.sender?.username} style={{borderColor: moodColorHandler(msg.sender?.moodStatus),borderWidth: 2}} className="w-9 h-9 rounded-full object-cover" />
                           </div>
                           
                           <div className="flex-1 min-w-0">
@@ -133,7 +161,7 @@ const RightPanel = ({ selectedUser, isSearching, setIsSearching, setShowLogoutMo
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )})}
                   </div>
                 )}
               </div>

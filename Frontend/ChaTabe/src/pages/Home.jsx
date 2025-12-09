@@ -14,10 +14,7 @@ import LogoutConfirmationModal from '../components/logoutConfirmationModal.jsx';
 import RightPanel from '../components/rightPanel.jsx';
 import { io } from "socket.io-client";
 
-// CONNECT SOCKET.IO
-const socket = io("http://localhost:3000", {
-  withCredentials: true
-});
+
 
 axios.defaults.withCredentials = true;
 
@@ -57,73 +54,132 @@ const Home = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedMood, setSelectedMood] = useState(null); 
 
+  const [loading, setLoading] = useState(true)
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [globalLoading,setGlobalLoading] = useState(false)
+
+
+
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'; // Fallback for safety
+
+  // Initialize socket inside component with dynamic URL
+  const socket = useRef(null);
+  useEffect(() => {
+    socket.current = io(API_URL, {
+      withCredentials: true,
+    });
+  
+    // Example event listener
+    socket.current.on("connect", () => {
+      console.log("Connected with id:", socket.current.id);
+    });
+  
+    socket.current.on("receiveMessage", (msg) => {
+      console.log("Received message:", msg);
+    });
+  
+    // Cleanup on unmount
+    return () => {
+      if (socket.current) socket.current.disconnect();
+    };
+  }, [API_URL]);
+  
+
+
   useEffect(() => {
       if (messagesEndRef.current) {
         messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
       }
     }, [messages]);
 
-  useEffect(() => {
-    socket.on("receiveMessage", (data) => {
-      if (data.conversationId === conversationId) {
-        setMessages((prev) => [...prev, data]);
-      }
-    });
+    useEffect(() => {
+      if (!socket.current) return;
+    
+      const onReceive = (incoming) => {
+        const msgConvId =
+          incoming?.conversationId?._id ??
+          incoming?.conversationId ??
+          incoming?.conversation ??
+          null;
+    
+        if (!msgConvId || !conversationId) return;
+    
+        if (String(msgConvId) === String(conversationId)) {
+          setMessages(prev => {
+            if (prev.some(m => m._id === incoming._id)) return prev;
+            return [...prev, incoming];
+          });
+        }
+      };
+    
+      const onTyping = (data) => {
+        if (String(data.conversationId) === String(conversationId)) setIsTyping(true);
+      };
+    
+      const onStopTyping = (data) => {
+        if (String(data.conversationId) === String(conversationId)) setIsTyping(false);
+      };
+    
+      socket.current.on("receiveMessage", onReceive);
+      socket.current.on("typing", onTyping);
+      socket.current.on("stopTyping", onStopTyping);
+    
+      return () => {
+        socket.current.off("receiveMessage", onReceive);
+        socket.current.off("typing", onTyping);
+        socket.current.off("stopTyping", onStopTyping);
+      };
+    }, [conversationId]);
+    
+    
 
-    socket.on("typing", (data) => {
-      if (data.conversationId === conversationId) {
-        setIsTyping(true);
-      }
-    });
-
-    socket.on("stopTyping", (data) => {
-      if (data.conversationId === conversationId) {
-        setIsTyping(false);
-      }
-    });
-
-    return () => {
-      socket.off("receiveMessage");
-      socket.off("typing");
-      socket.off("stopTyping");
-    };
-
-  }, [conversationId]);
-
-  useEffect(() => {
-    socket.on("updateMessage", (data) => {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg._id === data.messageId ? { ...msg, text: data.text } : msg
-        )
-      );
-    });
-
-    return () => socket.off("updateMessage");
-  }, [conversationId]);
+    useEffect(() => {
+      if (!socket.current) return;
+    
+      const handleUpdate = (data) => {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg._id === data.messageId ? { ...msg, text: data.text } : msg
+          )
+        );
+      };
+    
+      socket.current.on("updateMessage", handleUpdate);
+    
+      return () => socket.current.off("updateMessage", handleUpdate);
+    }, [conversationId]);
+    
 
   
 
-  useEffect(() => {
-  socket.on("deleteMessage", (data) => {
-    if (data.conversationId === conversationId) {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg._id === data.messageId ? { ...msg, isDeleted: true } : msg
-        )
-      );
-    }
-  });
-
-  return () => socket.off("deleteMessage");
-}, [conversationId]);
+    useEffect(() => {
+      if (!socket.current) return;
+    
+      const handleDelete = (data) => {
+        if (data.conversationId === conversationId) {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg._id === data.messageId ? { ...msg, isDeleted: true } : msg
+            )
+          );
+        }
+      };
+    
+      socket.current.on("deleteMessage", handleDelete);
+    
+      return () => socket.current.off("deleteMessage", handleDelete);
+    }, [conversationId]);
+    
 
 
 
   useEffect(() => {
     async function fetchUserData() {
       try {
-        const res = await axios.get('http://localhost:3000/user-data',{
+
+        setLoading(true); 
+
+        const res = await axios.get('/user-data',{
           withCredentials: true
         })
 
@@ -132,6 +188,8 @@ const Home = () => {
 
       } catch (error) {
         console.error("Error fetching user data:", error);
+      }finally {
+        setLoading(false);  
       }
     }
  
@@ -165,8 +223,12 @@ const Home = () => {
   const selectedUser = userData?.user?.contacts?.find(user => user._id === userId);
   
   const handleSearch = async () => {
+
   try {
-    const response = await axios.get(`http://localhost:3000/search?username=${query}`, {
+
+    setLoading(true); 
+
+    const response = await axios.get(`/search?username=${query}`, {
       withCredentials: true
     });
 
@@ -174,12 +236,17 @@ const Home = () => {
   } catch (error) {
     console.log('Search error:', error);
     setResults([]);
+  }finally {
+    setLoading(false);  
   }
 };
 
   const addContact = async (contactId) => {
     try {
-      const response = await axios.post('http://localhost:3000/add-contact',{
+
+      
+
+      const response = await axios.post('/add-contact',{
         contactId
       },{ withCredentials: true})
 
@@ -211,15 +278,19 @@ const Home = () => {
   const Logout = async () => {
     if (loggingOut) return;      
     setLoggingOut(true);
-
+    
     try {
-      await axios.post('http://localhost:3000/logout', {}, { withCredentials: true });
+
+      setGlobalLoading(true);
+
+      await axios.post('/logout', {}, { withCredentials: true });
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
       setLoggingOut(false);
       setShowLogoutModal(false);  
+      setGlobalLoading(false)
     }
   };
 
@@ -230,6 +301,7 @@ const Home = () => {
     setConversationId(null)
     setIsBlocked(false)
     setIsBlockedBy(false)
+    setLoadingMessages(true); 
 
     if (!receiverId || !userData?.user?._id) return;
 
@@ -238,7 +310,7 @@ const Home = () => {
     if (!findContact) return;
 
     try {
-      const convoRes = await axios.post("http://localhost:3000/conversation", {
+      const convoRes = await axios.post("/conversation", {
         senderId: userData?.user?._id,
         receiverId,
       });
@@ -264,9 +336,9 @@ const Home = () => {
       setIsBlocked(convo.isBlocked || false);
       setIsBlockedBy(convo.blockedBy || null);
 
-      socket.emit("joinRoom", convo.conversationId);
+      socket.current.emit("joinRoom", convo.conversationId);
 
-      const messageRes = await axios.post("http://localhost:3000/messages", {
+      const messageRes = await axios.post("/messages", {
         conversationId: convo.conversationId,
         senderId: userData?.user?._id,
         receiverId
@@ -277,6 +349,8 @@ const Home = () => {
     } catch (error) {
       console.error("Error fetching conversation or messages:", error);
       setMessages([]);
+    }finally {
+      setLoadingMessages(false);  
     }
   };
 
@@ -302,11 +376,11 @@ const Home = () => {
 
   const confirmDelete = async () => {
     if (!messageToDelete) return;
-
+    setGlobalLoading(true); 
     console.log('Deleting message:', messageToDelete);
 
     try {
-      await axios.delete(`http://localhost:3000/delete-message/${messageToDelete._id}`, { withCredentials: true });
+      await axios.delete(`/delete-message/${messageToDelete._id}`, { withCredentials: true });
 
       setMessages((prev) =>
         prev.map((msg) =>
@@ -314,7 +388,7 @@ const Home = () => {
         )
     );
 
-      socket.emit("deleteMessage", {
+      socket.current.emit("deleteMessage", {
         conversationId,
         messageId: messageToDelete._id,
       });
@@ -325,15 +399,17 @@ const Home = () => {
       console.error("Delete failed:", error);
     } finally {
       closeDeleteModal();
+      setGlobalLoading(false)
     }
   };
 
   const blockContact = async () => {
     if (isBlocking) return;      
     setIsBlocking(true);
+    setGlobalLoading(true); 
 
     try {
-      const response = await axios.post('http://localhost:3000/block-contact',{
+      const response = await axios.post('/block-contact',{
         conversationId
       },{withCredentials:true})
 
@@ -346,6 +422,7 @@ const Home = () => {
     } finally {
       setIsBlocking(false);
       setShowBlockModal(false);
+      setGlobalLoading(false)
     }
   }
 
@@ -359,8 +436,9 @@ const Home = () => {
   ];
 
   const updateMood = async (newMood) => {
+    setGlobalLoading(true); 
     try {
-      await axios.post('http://localhost:3000/update-mood', { moodStatus: newMood }, { withCredentials: true });
+      await axios.post('/update-mood', { moodStatus: newMood }, { withCredentials: true });
       
       setUserData(prev => ({
         ...prev,
@@ -371,11 +449,17 @@ const Home = () => {
     } catch (err) {
       alert("Failed to update mood");
       console.error(err);
+    }finally {
+      setGlobalLoading(false);  
     }
   };
 
   return (
+
+    
     <div className="flex flex-col h-screen bg-gradient-to-r from-[#ffffff] to-[#9176e8]">
+      
+
 
       {showDeleteModal && (
         <ConfirmationModal
@@ -411,6 +495,8 @@ const Home = () => {
           Logout={Logout}
         />
       )}
+
+      
 
   {showProfileModal && (
     <div className="fixed inset-0 bg-white/10 backdrop-blur-md flex items-center justify-center z-50">
@@ -465,11 +551,8 @@ const Home = () => {
           </button>
 
           <button
-            onClick={() => {
-              if(!confirm("Are you sure you want to logout?")) return
-              Logout()
-             
-            }}
+            onClick={() => { setShowProfileModal(false)  
+              setShowLogoutModal(true) }}
             className="w-full py-4 px-6 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
           >
             <LogOut size={20} />
@@ -525,7 +608,7 @@ const Home = () => {
               </span>
             </p>
 
-            {/* FIXED: This button now actually saves the mood */}
+  
             <button 
               className={`
                 mt-6 w-full py-4 rounded-xl font-bold text-white transition-all shadow-lg
@@ -630,14 +713,32 @@ const Home = () => {
       </header>
 
       <main className="flex flex-col md:flex-row flex-grow gap-3 px-4 py-2 bg-gradient-to-r from-[#ffffff] to-[#9176e8]">
+
+        {globalLoading && (
+          <div className="fixed inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-[#6f2db7] border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-[#6f2db7] font-semibold">Loading...</p>
+          </div>
+        </div>
+      
+        )}
         
         <div className="bg-transparent flex-[1] 2xl:flex-[0.8] xl:flex-[0.9] lg:flex-[1.3] md:flex-[2]  min-h-[300px] md:min-h-[89vh] rounded-md  shadow-gray-500 shadow-2xl p-3 overflow-y-auto">
           
           <p className='text-[#6f2db7] text-2xl font-semibold ml-3 mt-3 mb-5'>Contacts</p>
           
           <ul className="space-y-3">
-            {
-              userData?.user?.contacts?.length > 0 ? (
+            
+          {
+          loading ? (
+            
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-4 border-[#6f2db7] border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-[#6f2db7] font-semibold">Loading...</p>
+              </div>
+           
+          ):userData?.user?.contacts?.length > 0 ? (
                 userData.user.contacts.map(user => (
                   <li
                     key={user._id}
@@ -688,6 +789,7 @@ const Home = () => {
 
               <div className="w-full bg-white h-[1px] my-2"></div>
         
+            
               <ChatBox 
                 messages={messages}
                 messagesEndRef={messagesEndRef}
@@ -699,6 +801,7 @@ const Home = () => {
                 openDeleteModal={openDeleteModal}
                 isBlocked={isBlocked}
                 isBlockedBy={isBlockedBy}
+                loadingMessages={loadingMessages}
               />
 
               <MessageInputComponent  
@@ -717,6 +820,8 @@ const Home = () => {
                 setShowUnblockModal={setShowUnblockModal}
                 currentUserId={userData?.user?._id}
                 setMessages={setMessages}
+                loading={loading}
+                setLoading={setLoading}
               />
             </>
           ) : (

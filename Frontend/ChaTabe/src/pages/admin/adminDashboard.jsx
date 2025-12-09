@@ -5,6 +5,7 @@ import { Users, MessageSquare, Shield, LogOut, Activity, Ban, Send,LayoutDashboa
 import {ResponsiveContainer,LineChart,CartesianGrid,XAxis,YAxis,Tooltip,Line} from 'recharts'
 import MessagePanel from './messagesPage'
 
+
 import UserPage from "./userPage";
 import BannedUsersPanel from "./bannedUserPanel";
 
@@ -34,12 +35,12 @@ const AdminDashboard = () => {
 
         const responses = await Promise.all([
 
-          axios.get("http://localhost:3000/admin/total-users"),
-          axios.get("http://localhost:3000/admin/total-messages"),
-          axios.get("http://localhost:3000/admin/active-users"),
-          axios.get("http://localhost:3000/admin/messages-today"),
-          axios.get("http://localhost:3000/admin/total-banned-users"),
-          axios.get("http://localhost:3000/admin/registered-users-today"),
+          axios.get("/admin/total-users"),
+          axios.get("/admin/total-messages"),
+          axios.get("/admin/active-users"),
+          axios.get("/admin/messages-today"),
+          axios.get("/admin/total-banned-users"),
+          axios.get("/admin/registered-users-today"),
           
 
         ])
@@ -61,7 +62,7 @@ const AdminDashboard = () => {
 
     if(!confirm("Do you want to logout?")) return
     
-    await axios.post("http://localhost:3000/logout",{withCredentials:true});
+    await axios.post("/logout",{withCredentials:true});
     navigate("/");
   };
 
