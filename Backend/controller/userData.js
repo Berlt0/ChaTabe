@@ -7,6 +7,10 @@ export const getUserData = async (req,res) => {
     const user = await Users.findById(userId)
       .select("-password")
       .populate("contacts", "username age gender profilePic profilePicURL moodStatus isActive")
+      .populate({
+        path: 'friendRequests.from',
+        select: 'username email profilePic profilePicURL moodStatus' // Select only needed fields
+      })
       .lean();
 
     if(!user) return res.status(404).json({success:false,message:"User not found"});
@@ -23,6 +27,17 @@ export const getUserData = async (req,res) => {
         ? `data:${contact.profilePic.contentType};base64,${contact.profilePic.data.toString("base64")}`
         : contact.profilePicURL
     }));
+
+
+    user.friendRequests = user.friendRequests.map(request => ({
+    ...request,
+    from: {
+        ...request.from,
+        profilePic: request.from.profilePic?.data
+            ? `data:${request.from.profilePic.contentType};base64,${request.from.profilePic.data.toString("base64")}`
+            : request.from.profilePicURL
+    }
+}));
 
     res.json({ user });
   } catch (error) {

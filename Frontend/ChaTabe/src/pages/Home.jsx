@@ -4,7 +4,7 @@ import axios from '../api/axiosSetup.js';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Search, MessageSquareText, Smile, ThumbsUp, MessageCircleOff, LogOut, X } from "lucide-react";
+import { Search, MessageSquareText, Smile, ThumbsUp, MessageCircleOff, LogOut, X,Users } from "lucide-react";
 import MessageInputComponent from '../components/MessageInputComponent';
 import ChatBox from '../components/chatBox';
 import ConfirmationModal from '../components/confirmationModal.jsx';
@@ -58,6 +58,11 @@ const Home = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [globalLoading,setGlobalLoading] = useState(false)
 
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [showFriendDropdown, setShowFriendDropdown] = useState(false);
+  const [processingRequest, setProcessingRequest] = useState(false);
+
+  
 
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'; // Fallback for safety
@@ -78,6 +83,20 @@ const Home = () => {
       console.log("Received message:", msg);
     });
   
+    // In Home component
+    socket.current.on('friendRequestReceived', (payload) => {
+      setFriendRequests(prev => [
+        { from: payload.sender, createdAt: new Date() }, // Match backend structure
+        ...prev
+      ]);
+    });
+
+
+    socket.current.on('friendRequestAccepted', (payload) => {
+    // optionally handle notifications
+    console.log('friend request accepted:', payload);
+    });
+
     // Cleanup on unmount
     return () => {
       if (socket.current) socket.current.disconnect();
@@ -185,6 +204,8 @@ const Home = () => {
 
         setUserData(res.data)
         console.log('User data: ',res.data)
+
+        setFriendRequests(res.data?.user?.friendRequests || []);
 
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -425,6 +446,81 @@ const Home = () => {
       setGlobalLoading(false)
     }
   }
+
+
+  const acceptRequest = async (senderId) => {
+
+      if (processingRequest) return;
+
+      setProcessingRequest(true);
+
+      try {
+
+      const res = await axios.post('/accept-friend-request', { senderId }, { withCredentials: true });
+      alert(res.data.message);
+
+
+      // add new contact to state
+      if (res.data.newContact) {
+      setUserData(prev => ({
+        ...prev,
+        user: {
+          ...prev.user,
+          contacts: [...(prev.user.contacts || []), res.data.newContact]
+        }
+      }));
+    }
+
+
+      // remove from friendRequests
+     setFriendRequests(prev => prev.filter(fr => String(fr.from._id) !== String(senderId)));
+
+
+      // notify sender via socket
+
+
+       const receiverId = userData?.user?._id;
+    socket.current?.emit('friendRequestAccepted', { senderId, receiverId });
+
+
+      } catch (err) {
+
+      console.error('Accept request failed', err);
+      alert(err.response?.data?.message || 'Failed to accept request');
+
+      } finally {
+
+      setProcessingRequest(false);
+
+      }
+      };
+
+
+      const rejectRequest = async (senderId) => {
+
+        if (processingRequest) return;
+
+        setProcessingRequest(true);
+
+        try {
+
+        const res = await axios.post('/reject-friend-request', { senderId }, { withCredentials: true });
+        alert(res.data.message);
+
+
+       setFriendRequests(prev => prev.filter(fr => String(fr.from._id) !== String(senderId)))
+
+        } catch (err) {
+
+        console.error('Reject request failed', err);
+        alert(err.response?.data?.message || 'Failed to reject request');
+
+        } finally {
+
+        setProcessingRequest(false);
+
+        }
+        };
 
   
   const moods = [
@@ -688,7 +784,83 @@ const Home = () => {
             </div>
 
           <div className="flex justify-center items-center ">
-           
+              {/* Friend request icon inserted before Mood icon */}
+              <div
+              className="relative flex flex-col items-center cursor-pointer ml-2" >
+              
+              <Users className="text-[#6f2db7] block sm:hidden" size={16} />
+              <div className="relative flex flex-col items-center">
+              <Users className="text-[#6f2db7] hidden sm:block margin-auto" size={20}  onClick={() => setShowFriendDropdown(true)}/>
+              <p className="text-[12px] text-[#6f2db7]">Request</p>
+              {friendRequests && friendRequests.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{friendRequests.length}</span>
+              )}
+              </div>
+
+
+              {/* Dropdown */}
+              {showFriendDropdown && (
+              <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50">
+              <div className="p-3">
+                <div className='flex flex-row align-items justify-between gap-1'>
+
+                <p className="text-sm font-semibold text-[#6f2db7] mb-2">Friend Requests</p>
+                <X size={20} onClick={() => setShowFriendDropdown(false)}/>
+
+                </div>
+
+
+              {friendRequests.length === 0 ? (
+                <p className="text-xs text-gray-500">No friend requests</p>
+              ) : (
+                <div className="max-h-64 overflow-y-auto">
+                  {friendRequests.map((req) => {
+                    const user = req.from; // Now user has the details
+                    return (
+                      <div key={user._id} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                        <div className="flex items-center gap-3">
+                          
+                          <img 
+                            src={user?.profilePic || user?.profilePicURL || '/default-avatar.png'} 
+                            alt={user.username} 
+                            className="w-10 h-10 border-2 rounded-full object-cover" 
+                            style={{ borderColor: moodColorHandler(user.moodStatus) }} 
+                          />
+                          <div>
+                            <p className="font-semibold text-sm">{user.username || 'Unknown'}</p> 
+                         
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button 
+                            disabled={processingRequest} 
+                            onClick={() => acceptRequest(user._id)} 
+                            className="px-3 py-1 rounded-md bg-green-500 text-white text-xs cursor-pointer"
+                          >
+                            Accept
+                          </button>
+                          <button 
+                            disabled={processingRequest} 
+                            onClick={() => rejectRequest(user._id)} 
+                            className="px-3 py-2 rounded-md bg-red-500 text-white text-xs cursor-pointer"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+
+              </div>
+              </div>
+              )}
+              </div>
+
+
+                          
             <div className="flex flex-col items-center cursor-pointer ml-2" onClick={() => setShowMoodModal(true)}>
               <Smile className="text-[#6f2db7] block sm:hidden" size={16} />
               <Smile className="text-[#6f2db7] hidden sm:block" size={20} />

@@ -8,6 +8,7 @@ import { searchMessage } from '../controller/searchMessage.js';
 import { getMessages, sendMessage, getUserConversations ,editMessage, deleteMessage } from '../controller/chatController.js';
 import { blockContact } from '../controller/blockUser.js';
 import { updateMood } from '../controller/updateMood.js';
+import { rejectFriendRequest, acceptFriendRequest} from '../controller/requests.js';
 
 
 import upload from "../middleware/upload.js";
@@ -38,6 +39,8 @@ router.post('/update-mood', verifyToken, updateMood);
 router.post("/verify-otp", verifyOTP);
 router.post("/resend-otp", resendOTP);
 
+router.post('/reject-friend-request', verifyToken, rejectFriendRequest);
+router.post('/accept-friend-request', verifyToken, acceptFriendRequest);
 
 
 export default router;

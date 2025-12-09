@@ -66,7 +66,13 @@ const userSchema = new mongoose.Schema({
     },
      otp: String,
      otpExpires: Date,
-     isVerified: { type: Boolean, default: false }
+     isVerified: { type: Boolean, default: false },
+     friendRequests: [
+        {
+            from:{ type: mongoose.Schema.Types.ObjectId, ref: "Users" },
+             createdAt: { type: Date, default: Date.now }
+        }
+    ]
 })
 
 export default mongoose.model("Users", userSchema)
